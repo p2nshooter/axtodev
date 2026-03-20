@@ -1,0 +1,12 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "build":      { "dependsOn": ["^build"], "outputs": ["dist/**", ".wrangler/**"] },
+    "deploy":     { "dependsOn": ["build"], "cache": false },
+    "dev":        { "cache": false, "persistent": true },
+    "type-check": { "dependsOn": ["^build"], "outputs": [] },
+    "lint":       { "outputs": [] }
+  },
+  "globalEnv": ["NODE_ENV", "CLOUDFLARE_API_TOKEN", "VITE_API_URL", "VITE_APP_ENV"]
+}

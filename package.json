@@ -1,0 +1,35 @@
+{
+  "name": "axto-dev",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AXTO — AI Execution & Tools Orchestration Platform · axto.dev",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev":              "turbo run dev --parallel",
+    "build":            "turbo run build",
+    "type-check":       "turbo run type-check",
+    "lint":             "turbo run lint",
+    "format":           "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "deploy":           "pnpm deploy:api && pnpm deploy:web",
+    "deploy:api":       "pnpm wrangler deploy --config apps/api/wrangler.toml",
+    "deploy:web":       "pnpm --filter web build && pnpm wrangler pages deploy apps/web/dist --project-name axto-web",
+    "db:migrate":       "pnpm wrangler d1 migrations apply axto-db --config apps/api/wrangler.toml --remote",
+    "db:migrate:local": "pnpm wrangler d1 migrations apply axto-db --config apps/api/wrangler.toml --local",
+    "db:seed":          "pnpm wrangler d1 execute axto-db --file packages/database/seeds/seed.sql --config apps/api/wrangler.toml --remote",
+    "db:studio":        "pnpm wrangler d1 execute axto-db --command 'SELECT name FROM sqlite_master WHERE type=\\'table\\'' --local",
+    "setup":            "node scripts/setup.mjs"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250224.0",
+    "@types/node": "^20.11.5",
+    "prettier": "^3.2.4",
+    "turbo": "^2.0.0",
+    "typescript": "^5.3.3",
+    "wrangler": "^3.44.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.1.0"
+}
