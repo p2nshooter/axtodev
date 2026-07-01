@@ -1,0 +1,39 @@
+name = "axto-dev"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
+
+# --------------------------------------------------------------------------
+# Cloudflare D1 (application database) — binding name used by prisma/adapter-d1.
+# The database id/name is provisioned separately and injected as a GitHub
+# Secret (CLOUDFLARE_D1_DATABASE_ID) at deploy time; no credentials are
+# hardcoded here.
+# --------------------------------------------------------------------------
+[[d1_databases]]
+binding = "DB"
+database_name = "axto-dev-db"
+database_id = "REPLACE_WITH_CLOUDFLARE_D1_DATABASE_ID"
+
+# --------------------------------------------------------------------------
+# Cloudflare R2 — private bucket that stores the actual e-book files
+# (PDF/EPUB). Access is always brokered through signed, expiring download
+# URLs generated server-side; the bucket itself is never public.
+# --------------------------------------------------------------------------
+[[r2_buckets]]
+binding = "EBOOKS_BUCKET"
+bucket_name = "axto-dev-ebooks"
+
+[[r2_buckets]]
+binding = "ASSETS_BUCKET"
+bucket_name = "axto-dev-assets"
+
+# --------------------------------------------------------------------------
+# KV — used for rate limiting, download-token replay protection and
+# short-lived crypto payment quote caching.
+# --------------------------------------------------------------------------
+[[kv_namespaces]]
+binding = "CACHE"
+id = "REPLACE_WITH_CLOUDFLARE_KV_NAMESPACE_ID"
+
+[vars]
+NODE_ENV = "production"

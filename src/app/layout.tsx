@@ -1,0 +1,43 @@
+import type { Metadata } from "next";
+import { Inter, Playfair_Display } from "next/font/google";
+import { Toaster } from "sonner";
+import { ThemeProvider } from "@/components/theme-provider";
+import { SiteHeader } from "@/components/site/site-header";
+import { SiteFooter } from "@/components/site/site-footer";
+import { SITE } from "@/lib/constants";
+import "@/styles/globals.css";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair", display: "swap" });
+
+export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://axto.dev"),
+  title: { default: `${SITE.name} — ${SITE.tagline}`, template: `%s · ${SITE.name}` },
+  description: SITE.description,
+  openGraph: {
+    title: SITE.name,
+    description: SITE.description,
+    siteName: SITE.name,
+    type: "website",
+  },
+  twitter: { card: "summary_large_image", title: SITE.name, description: SITE.description },
+  robots: { index: true, follow: true },
+  manifest: "/manifest.webmanifest",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} ${playfair.variable} font-sans`}>
+        <ThemeProvider>
+          <div className="flex min-h-screen flex-col">
+            <SiteHeader />
+            <main className="flex-1">{children}</main>
+            <SiteFooter />
+          </div>
+          <Toaster richColors position="top-center" theme="dark" />
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}

@@ -1,90 +1,57 @@
-# 🔐 AXTO — Environment Variables & Secrets Setup
+# Environment Setup
 
-> Read this **before** your first deploy.
+All secrets are provided via **GitHub Secrets** (CI/build time) and **Cloudflare Pages
+environment variables** (runtime) — never commit a real `.env` file. `.env.example` documents
+every variable; copy it to `.env` for local development only.
 
----
+## Already configured (per project instructions — do not re-request)
 
-## Step 1 — GitHub Repository Secrets
+- Cloudflare Database (D1) credentials
+- Cloudflare R2 credentials
+- Cloudflare API credentials (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`)
+- PayPal Client ID / Secret / Webhook ID
 
-Go to: `github.com/YOUR_ORG/axto-dev` → **Settings → Secrets → Actions**
+These are read directly from GitHub Secrets in `.github/workflows/deploy.yml` and from
+Cloudflare Pages' own environment variable settings at runtime — nothing to do here.
 
-| Secret Name | How to Get It |
+## Required GitHub Secrets
+
+| Secret | Used for |
 |---|---|
-| `CLOUDFLARE_API_TOKEN` | CF Dashboard → My Profile → API Tokens → Create Token → "Edit Cloudflare Workers" template + add D1, R2, Pages permissions |
-| `CLOUDFLARE_ACCOUNT_ID` | CF Dashboard → right sidebar (32-char hex) |
-| `D1_DATABASE_ID` | Output from `node scripts/setup.mjs` |
-| `KV_NAMESPACE_ID` | Output from `node scripts/setup.mjs` |
-| `R2_BUCKET_NAME` | `axto-outputs` |
-| `JWT_SECRET` | `openssl rand -hex 64` |
-| `ADMIN_TOTP_SECRET` | `openssl rand -hex 32` (save in your TOTP app) |
-| `OPENAI_API_KEY` | platform.openai.com → API Keys |
-| `ANTHROPIC_API_KEY` | console.anthropic.com → API Keys |
-| `REPLICATE_API_TOKEN` | replicate.com → Account → API Tokens |
-| `RUNWAYML_API_KEY` | app.runwayml.com → Settings → API |
-| `ELEVENLABS_API_KEY` | elevenlabs.io → Profile → API Key |
-| `SUNO_API_KEY` | suno.com → API access |
+| `CLOUDFLARE_API_TOKEN` | D1 migrations + Pages deploy |
+| `CLOUDFLARE_ACCOUNT_ID` | D1 migrations + Pages deploy |
+| `BETTER_AUTH_SECRET` | Session signing (32+ random bytes) |
 
----
+## Required Cloudflare Pages environment variables (Production + Preview)
 
-## Step 2 — CF API Token Permissions
+| Variable | Notes |
+|---|---|
+| `DATABASE_URL` | Not used at runtime on Cloudflare (D1 binding is used instead) — set to any placeholder |
+| `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` | Auth session secret + canonical URL |
+| `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | Transactional email |
+| `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`, `PAYPAL_ENV` | PayPal Orders API + webhook verification |
+| `COINGECKO_API_KEY` | Optional — raises the live-price rate limit |
+| `CRYPTO_ADDRESS_BTC`, `CRYPTO_ADDRESS_ETH`, `CRYPTO_ADDRESS_BNB`, `CRYPTO_ADDRESS_SOL`, `CRYPTO_ADDRESS_USDT_TRC20`, `CRYPTO_ADDRESS_DOGE` | Receiving wallet addresses — **verify each one yourself**, see `docs/PAYMENT_WALLETS.md` |
+| `DOWNLOAD_TOKEN_SECRET`, `CRYPTO_WEBHOOK_SECRET` | Signing secrets (32+ random bytes each) |
+| `DOWNLOAD_LINK_TTL_SECONDS` | Default `900` (15 minutes) |
+| `R2_PUBLIC_ASSETS_URL` | Public CDN URL for the assets bucket |
+| `ADMIN_BOOTSTRAP_EMAIL` | Email that `pnpm db:seed` promotes to `SUPER_ADMIN` |
+| `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_APP_NAME` | Public site URL/name |
 
-Your `CLOUDFLARE_API_TOKEN` needs:
-- [x] Workers Scripts → **Edit**
-- [x] D1 → **Edit**
-- [x] R2 Storage → **Edit**
-- [x] Cloudflare Pages → **Edit**
-- [x] DNS → **Edit** (zone: axto.dev)
-- [x] Workers Routes → **Edit**
-
----
-
-## Step 3 — CF Pages Environment Variables
-
-CF Dashboard → Pages → `axto-web` → Settings → Environment Variables:
-
-| Variable | Production | Preview |
-|---|---|---|
-| `VITE_API_URL` | `https://api.axto.dev` | `https://api-staging.axto.dev` |
-| `VITE_APP_ENV` | `production` | `preview` |
-
----
-
-## Step 4 — DNS Records (one-time)
-
-CF Dashboard → DNS for `axto.dev`:
-
-```
-CNAME  @    →  axto-web.pages.dev              [Proxied ✅]
-CNAME  api  →  axto-api.*.workers.dev          [Proxied ✅]
-CNAME  www  →  axto-web.pages.dev              [Proxied ✅]
-```
-
----
-
-## Step 5 — Local Dev
+Generate random secrets with:
 
 ```bash
-# apps/api/.env.local
-JWT_SECRET=local_dev_secret_min_32chars
-ADMIN_TOTP_SECRET=local_totp_secret
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
-REPLICATE_API_TOKEN=r8_...
-
-# apps/web/.env.local
-VITE_API_URL=http://localhost:8787
-VITE_APP_ENV=development
+openssl rand -base64 32
 ```
 
----
+## Cloudflare resources to provision once
 
-## ✅ Pre-Deploy Checklist
+```bash
+npx wrangler d1 create axto-dev-db
+npx wrangler r2 bucket create axto-dev-ebooks
+npx wrangler r2 bucket create axto-dev-assets
+npx wrangler kv namespace create CACHE
+```
 
-- [ ] All 13 GitHub Secrets added
-- [ ] CF API Token has correct permissions
-- [ ] DNS records configured for `axto.dev`
-- [ ] `node scripts/setup.mjs` completed
-- [ ] D1_DATABASE_ID + KV_NAMESPACE_ID added to secrets
-- [ ] `pnpm db:migrate` run (creates schema)
-- [ ] `pnpm db:seed` run (inserts pricing, nodes, demo users)
-- [ ] Admin TOTP secret saved in authenticator app
+Copy the resulting IDs into `wrangler.toml` (replacing the `REPLACE_WITH_…` placeholders) and
+into the Cloudflare Pages project's binding settings.

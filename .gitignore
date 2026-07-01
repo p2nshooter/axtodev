@@ -10,3 +10,14 @@ dist/
 *.log
 coverage/
 .cache/
+
+# Next.js / Cloudflare Pages build output
+.next/
+.vercel/
+out/
+next-env.d.ts
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
+*.tsbuildinfo

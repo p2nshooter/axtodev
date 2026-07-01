@@ -1,99 +1,47 @@
-# 🚀 AXTO Deployment Guide
+# Deployment
 
-## Auto Deploy Flow
+AXTO.dev deploys to **Cloudflare Pages** with a **D1** database, **R2** storage, and a **KV**
+namespace for rate limiting / caching, via `@cloudflare/next-on-pages`.
 
-```
-git push origin main
-        │
-        ▼
-  GitHub Actions
-        │
-  ┌─────┴──────┐
-  │            │
- 🔍 Quality   ───► 🏗 Build
-  │                    │
-  │              ┌─────┴──────┐
-  │              │            │
-  │           🗄 D1        (web artifact)
-  │           Migrate         │
-  │              │            │
-  │        ┌─────┴──────┐     │
-  │        │            │     │
-  │      ⚡ API       🌐 Web ──┘
-  │      Worker      Pages
-  │        │            │
-  └────────┴──── 🧪 Smoke ────► 📣 Summary
-```
+## One-time setup
 
-**Total time: ~60–90 seconds**
+1. `npx wrangler login`
+2. Provision resources (see `docs/ENV_SETUP.md` for exact commands): D1 database, two R2
+   buckets, one KV namespace.
+3. Update `wrangler.toml` with the real D1 `database_id` and KV `id`.
+4. Create a Cloudflare Pages project named `axto-dev` connected to this repository, or let the
+   `deploy` job in `.github/workflows/deploy.yml` create/update it via `wrangler pages deploy`.
+5. Add all secrets/env vars listed in `docs/ENV_SETUP.md` to the Pages project settings.
+6. Run the initial migration + seed against the remote D1 database:
+   ```bash
+   npx wrangler d1 migrations apply axto-dev-db --remote
+   DATABASE_URL="<remote d1 proxy or local>" pnpm db:seed
+   ```
 
----
+## CI/CD pipeline (`.github/workflows/deploy.yml`)
 
-## Manual Deploy
+1. **lint-and-typecheck** — `next lint` + `tsc --noEmit` on every push/PR.
+2. **build** — `pnpm run cf:build` (runs `@cloudflare/next-on-pages`), uploads the
+   `.vercel/output/static` artifact.
+3. **migrate-database** — applies any new Prisma migrations to the remote D1 database
+   (`main` branch only).
+4. **deploy** — `wrangler pages deploy` (`main` branch only).
 
-```bash
-# Deploy everything
-pnpm deploy
+Pull requests run steps 1–2 only, so every PR is type-checked and build-verified without
+touching production data.
 
-# Deploy API only
-pnpm deploy:api
+## Zero-downtime / rollback
 
-# Deploy web only
-pnpm deploy:web
+Cloudflare Pages keeps every deployment addressable — to roll back, redeploy a previous
+successful build from the Pages dashboard or re-run the `deploy` job against an older commit.
+Because migrations run as a separate, additive step before deploy, always write migrations that
+are safe to run ahead of the new code being live (add columns/tables first, remove old ones in a
+follow-up release).
 
-# Run migrations
-pnpm db:migrate
-
-# Watch API logs live
-npx wrangler tail axto-api
-```
-
----
-
-## Branch Strategy
-
-| Branch | Environment | URL |
-|---|---|---|
-| `main` | Production | `axto.dev` / `api.axto.dev` |
-| `staging` | Staging | `staging.axto.dev` |
-| `feat/*` / PR | Preview | `<hash>.axto-web.pages.dev` |
-
----
-
-## Rollback
+## Local development against Cloudflare bindings
 
 ```bash
-# List Worker deployments
-npx wrangler deployments list --name axto-api
-
-# Roll back to previous Worker version
-npx wrangler rollback --name axto-api
-
-# Pages rollback:
-# CF Dashboard → Pages → axto-web → Deployments → (pick version) → Rollback
+pnpm dev            # plain Next.js dev server, falls back to local SQLite (DATABASE_URL)
+pnpm cf:build        # build the Pages-compatible output
+pnpm cf:preview       # run the built output locally against real D1/R2/KV bindings via wrangler
 ```
-
----
-
-## 72h Output Auto-Delete
-
-The scheduled Worker cron runs every 30 minutes:
-1. Queries `jobs` table for records where `expires_at < now()`
-2. Deletes the R2 object (`result_key`)
-3. Nulls out `result_key` and `result_url` in DB
-4. Clients are notified via in-app banner + email at 48h and 24h before expiry
-
-To test locally:
-```bash
-npx wrangler dev --test-scheduled
-# then curl http://localhost:8787/__scheduled
-```
-
----
-
-## Monitoring
-
-- **Worker logs:** `npx wrangler tail axto-api`
-- **D1 insights:** CF Dashboard → D1 → axto-db → Insights
-- **R2 usage:** CF Dashboard → R2 → axto-outputs → Metrics
-- **Pages analytics:** CF Dashboard → Pages → axto-web → Analytics
