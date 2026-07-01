@@ -5,9 +5,12 @@ pages_build_output_dir = ".vercel/output/static"
 
 # --------------------------------------------------------------------------
 # Cloudflare D1 (application database) — binding name used by prisma/adapter-d1.
-# The database id/name is provisioned separately and injected as a GitHub
-# Secret (CLOUDFLARE_D1_DATABASE_ID) at deploy time; no credentials are
-# hardcoded here.
+# The REPLACE_WITH_* placeholders below are patched with real resource IDs
+# by the `provision-cloudflare` + `migrate-database`/`deploy` jobs in
+# .github/workflows/deploy.yml, which create these resources on first
+# deploy if they don't already exist. For local `wrangler dev`/`pnpm
+# cf:preview`, run the commands in docs/ENV_SETUP.md once and fill in the
+# real IDs yourself.
 # --------------------------------------------------------------------------
 [[d1_databases]]
 binding = "DB"
