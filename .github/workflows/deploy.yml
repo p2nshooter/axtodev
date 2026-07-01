@@ -51,8 +51,13 @@ jobs:
           npx wrangler d1 create axto-dev-db || true
           npx wrangler r2 bucket create axto-dev-ebooks || true
           npx wrangler r2 bucket create axto-dev-assets || true
-          npx wrangler kv namespace list | grep -q '"title": *"axto-dev-db-CACHE"' \
-            || npx wrangler kv namespace create CACHE
+          # Create the CACHE KV namespace only if none matching already exists.
+          # wrangler titles it "<config-name>-CACHE" (e.g. axto-dev-CACHE),
+          # so match by the "CACHE" suffix rather than an exact string.
+          npx wrangler kv namespace list | node -e "
+            const list = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+            process.exit(list.some(n => /CACHE\$/.test(n.title)) ? 0 : 1);
+          " || npx wrangler kv namespace create CACHE
       - name: Resolve resource IDs
         id: resolve
         env:
@@ -67,7 +72,7 @@ jobs:
           ")
           KV_ID=$(npx wrangler kv namespace list | node -e "
             const list = JSON.parse(require('fs').readFileSync(0, 'utf8'));
-            const ns = list.find(n => n.title === 'axto-dev-db-CACHE');
+            const ns = list.find(n => /CACHE\$/.test(n.title));
             if (!ns) { console.error('CACHE KV namespace not found after create'); process.exit(1); }
             console.log(ns.id);
           ")
@@ -94,10 +99,12 @@ jobs:
       - name: Build Next.js app for Cloudflare Pages
         run: pnpm run cf:build
         env:
-          NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
+          # Fall back to the production domain when the repo variable isn't
+          # set, so the build never receives an empty URL.
+          NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL || 'https://axto.dev' }}
           DATABASE_URL: "file:./build.db"
-          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
-          BETTER_AUTH_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET || 'ci-build-placeholder-secret-0000000000' }}
+          BETTER_AUTH_URL: ${{ vars.NEXT_PUBLIC_APP_URL || 'https://axto.dev' }}
       - uses: actions/upload-artifact@v4
         with:
           name: pages-build

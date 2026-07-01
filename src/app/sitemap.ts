@@ -1,10 +1,11 @@
 import type { MetadataRoute } from "next";
 import { getPrisma } from "@/lib/prisma";
+import { getAppUrl } from "@/lib/site-url";
 
 export const runtime = "edge";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://axto.dev";
+  const baseUrl = getAppUrl();
   const prisma = await getPrisma();
 
   const [books, categories, posts] = await Promise.all([

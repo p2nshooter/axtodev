@@ -3,6 +3,7 @@ import { getCurrentSession } from "@/lib/session";
 import { getPrisma } from "@/lib/prisma";
 import { createPayPalOrder } from "@/lib/paypal";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
+import { getAppUrl } from "@/lib/site-url";
 
 export const runtime = "edge";
 
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
   const approveLink = (paypalOrder as unknown as { links?: Array<{ rel: string; href: string }> }).links?.find(
     (l) => l.rel === "approve",
   );
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+  const appUrl = getAppUrl();
   const approveUrl =
     approveLink?.href ??
     `${appUrl}/checkout/pay/${order.id}/paypal/return?token=${paypalOrder.id}`;

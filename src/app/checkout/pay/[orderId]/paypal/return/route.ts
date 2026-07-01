@@ -14,7 +14,7 @@ export async function GET(request: Request, { params }: Props) {
   const { orderId } = await params;
   const url = new URL(request.url);
   const paypalOrderId = url.searchParams.get("token");
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? url.origin;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || url.origin;
 
   const session = await getCurrentSession();
   if (!session?.user || !paypalOrderId) {

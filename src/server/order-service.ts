@@ -2,6 +2,7 @@ import "server-only";
 import { getPrisma } from "@/lib/prisma";
 import { sendEmail, purchaseReceiptEmail } from "@/lib/resend";
 import { formatUsd, generateOrderNumber } from "@/lib/utils";
+import { getAppUrl } from "@/lib/site-url";
 
 export interface CartLine {
   bookId: string;
@@ -118,7 +119,7 @@ export async function markOrderPaid(orderId: string, meta: { source: "paypal" | 
         title: item.book.translations[0]?.title ?? "AXTO.dev e-book",
         priceFormatted: formatUsd(item.unitPriceCents),
       })),
-      libraryUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/library`,
+      libraryUrl: `${getAppUrl()}/library`,
     }),
   });
 
