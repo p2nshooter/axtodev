@@ -51,6 +51,11 @@ jobs:
           npx wrangler d1 create axto-dev-db || true
           npx wrangler r2 bucket create axto-dev-ebooks || true
           npx wrangler r2 bucket create axto-dev-assets || true
+          # wrangler 4.x's `pages deploy` no longer creates the Pages
+          # project on first deploy in non-interactive CI — it must exist
+          # beforehand, or deploy fails with "Project not found" (code
+          # 8000007).
+          npx wrangler pages project create axto-dev --production-branch=main || true
           # Create the CACHE KV namespace only if none matching already exists.
           # wrangler titles it "<config-name>-CACHE" (e.g. axto-dev-CACHE),
           # so match by the "CACHE" suffix rather than an exact string.
@@ -167,7 +172,7 @@ jobs:
           sed -i "s/REPLACE_WITH_CLOUDFLARE_D1_DATABASE_ID/${{ needs.provision-cloudflare.outputs.d1_id }}/" wrangler.toml
           sed -i "s/REPLACE_WITH_CLOUDFLARE_KV_NAMESPACE_ID/${{ needs.provision-cloudflare.outputs.kv_id }}/" wrangler.toml
       - name: Deploy to Cloudflare Pages
-        run: npx wrangler pages deploy .vercel/output/static --project-name=axto-dev --branch=main
+        run: npx wrangler pages deploy .vercel/output/static --project-name=axto-dev --branch=main --commit-dirty=true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
