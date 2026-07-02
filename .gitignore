@@ -21,3 +21,6 @@ next-env.d.ts
 prisma/dev.db
 prisma/dev.db-journal
 *.tsbuildinfo
+
+# Generated at CI time from prisma/migrations/ — see .github/workflows/deploy.yml
+d1-migrations/

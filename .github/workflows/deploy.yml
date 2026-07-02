@@ -128,6 +128,22 @@ jobs:
           sed -i "s/REPLACE_WITH_CLOUDFLARE_D1_DATABASE_ID/${{ needs.provision-cloudflare.outputs.d1_id }}/" wrangler.toml
           sed -i "s/REPLACE_WITH_CLOUDFLARE_KV_NAMESPACE_ID/${{ needs.provision-cloudflare.outputs.kv_id }}/" wrangler.toml
       - run: pnpm install --frozen-lockfile
+      - name: Materialize wrangler-compatible migration files
+        # `wrangler d1 migrations apply` expects flat "NNNN_name.sql" files
+        # directly under migrations_dir; Prisma instead writes one
+        # "<timestamp>_<name>/migration.sql" folder per migration. Flatten
+        # each Prisma migration into wrangler.toml's migrations_dir,
+        # preserving chronological order via the timestamp prefix, so
+        # wrangler's own migration ledger (d1_migrations table) can track
+        # what's already been applied to the remote database.
+        run: |
+          mkdir -p d1-migrations
+          for dir in prisma/migrations/*/; do
+            name=$(basename "$dir")
+            [ "$name" = "migration_lock.toml" ] && continue
+            cp "${dir}migration.sql" "d1-migrations/${name}.sql"
+          done
+          ls -la d1-migrations
       - name: Apply D1 migrations
         run: pnpm exec wrangler d1 migrations apply axto-dev-db --remote
         env:

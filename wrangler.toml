@@ -16,6 +16,11 @@ pages_build_output_dir = ".vercel/output/static"
 binding = "DB"
 database_name = "axto-dev-db"
 database_id = "REPLACE_WITH_CLOUDFLARE_D1_DATABASE_ID"
+# `wrangler d1 migrations apply` reads flat "NNNN_name.sql" files from
+# here. CI materializes this directory from prisma/migrations/ before
+# running that command — see .github/workflows/deploy.yml. Not committed
+# (gitignored); safe to regenerate any time.
+migrations_dir = "d1-migrations"
 
 # --------------------------------------------------------------------------
 # Cloudflare R2 — private bucket that stores the actual e-book files
