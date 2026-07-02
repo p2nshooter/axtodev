@@ -181,3 +181,26 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           WRANGLER_LOG: debug
+      - name: Attach axto.dev custom domain to the Pages project
+        # wrangler has no CLI verb for Pages custom domains — this is only
+        # exposed via the REST API. Idempotent: a 409-ish "already exists"
+        # response is treated as success. Since axto.dev's nameservers
+        # already point at this Cloudflare account, attaching the domain
+        # here automatically provisions the DNS record needed for it to
+        # resolve to this deployment — no manual DNS entry required.
+        run: |
+          response=$(curl -sS -o /tmp/domain-response.json -w "%{http_code}" \
+            -X POST "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/axto-dev/domains" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"name":"axto.dev"}')
+          cat /tmp/domain-response.json
+          echo "HTTP status: $response"
+          if [ "$response" = "200" ] || grep -q "already exists\|already associated" /tmp/domain-response.json; then
+            echo "Domain attached (or already was)."
+          else
+            echo "::warning::Could not attach axto.dev automatically — add it manually in the Cloudflare Pages dashboard (project axto-dev → Custom domains)."
+          fi
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
