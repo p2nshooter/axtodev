@@ -3,9 +3,11 @@ import Link from "next/link";
 import { getCurrentSession } from "@/lib/session";
 import { getOrderWithPayments } from "@/server/order-service";
 import { getEnabledCryptoAssets } from "@/lib/crypto-payment";
+import { getSetting } from "@/server/settings-service";
 import { formatUsd } from "@/lib/utils";
 import { PayPalButton } from "@/components/checkout/paypal-button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { NowPaymentsButton } from "@/components/checkout/nowpayments-button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export const runtime = "edge";
@@ -27,7 +29,10 @@ export default async function PayOrderPage({ params }: Props) {
 
   if (order.status === "PAID") redirect("/checkout/success?order=" + order.orderNumber);
 
-  const cryptoAssets = getEnabledCryptoAssets();
+  const [cryptoAssets, nowPaymentsEnabled] = await Promise.all([
+    getEnabledCryptoAssets(),
+    getSetting("NOWPAYMENTS_API_KEY").then(Boolean),
+  ]);
 
   return (
     <div className="container max-w-2xl py-12">
@@ -61,13 +66,32 @@ export default async function PayOrderPage({ params }: Props) {
           </CardContent>
         </Card>
 
-        <Card>
+        {nowPaymentsEnabled && (
+          <Card className="border-gold-400/40">
+            <CardHeader>
+              <CardTitle className="text-base">Pay with Crypto</CardTitle>
+              <CardDescription>Auto-confirmed — pick any coin on the next screen.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <NowPaymentsButton orderId={order.id} />
+            </CardContent>
+          </Card>
+        )}
+
+        <Card className={nowPaymentsEnabled ? "sm:col-span-2" : undefined}>
           <CardHeader>
-            <CardTitle className="text-base">Pay with Crypto</CardTitle>
+            <CardTitle className="text-base">
+              {nowPaymentsEnabled ? "Or pay directly to a wallet" : "Pay with Crypto"}
+            </CardTitle>
+            {nowPaymentsEnabled && (
+              <CardDescription>Manual — confirmed by our team after checking the blockchain.</CardDescription>
+            )}
           </CardHeader>
           <CardContent className="space-y-2">
             {cryptoAssets.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Crypto payment is temporarily unavailable.</p>
+              <p className="text-sm text-muted-foreground">
+                {nowPaymentsEnabled ? "No direct wallet addresses configured." : "Crypto payment is temporarily unavailable."}
+              </p>
             ) : (
               cryptoAssets.map((asset) => (
                 <Link

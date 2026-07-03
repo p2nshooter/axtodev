@@ -1,13 +1,11 @@
 import "server-only";
 import { Resend } from "resend";
+import { getSetting } from "@/server/settings-service";
 
-let client: Resend | undefined;
-
-function getClient(): Resend | undefined {
-  const apiKey = process.env.RESEND_API_KEY;
+async function getClient(): Promise<Resend | undefined> {
+  const apiKey = await getSetting("RESEND_API_KEY");
   if (!apiKey) return undefined;
-  if (!client) client = new Resend(apiKey);
-  return client;
+  return new Resend(apiKey);
 }
 
 interface SendEmailInput {
@@ -20,19 +18,15 @@ interface SendEmailInput {
  *  RESEND_API_KEY never breaks checkout or account flows (spec: fail-safe
  *  design — non-critical services shouldn't take down the app). */
 export async function sendEmail({ to, subject, html }: SendEmailInput): Promise<void> {
-  const resend = getClient();
+  const resend = await getClient();
   if (!resend) {
     console.warn(`[email] RESEND_API_KEY not set — skipping email "${subject}" to ${to}`);
     return;
   }
 
   try {
-    await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL ?? "AXTO.dev <no-reply@axto.dev>",
-      to,
-      subject,
-      html,
-    });
+    const from = (await getSetting("RESEND_FROM_EMAIL")) ?? "AXTO.dev <no-reply@axto.dev>";
+    await resend.emails.send({ from, to, subject, html });
   } catch (error) {
     console.error("[email] send failed", error);
   }

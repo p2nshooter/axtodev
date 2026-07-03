@@ -2,10 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/session";
+import { requireAdmin, requireSuperAdmin } from "@/lib/session";
 import { getPrisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
 import { confirmCryptoPayment } from "@/lib/crypto-payment";
+import { setSetting, SETTING_KEYS, type SettingKey } from "@/server/settings-service";
 
 async function logAdminAction(action: string, entity: string, entityId: string, metadata?: unknown) {
   const prisma = await getPrisma();
@@ -110,6 +111,18 @@ export async function createCouponAction(formData: FormData) {
 
   await logAdminAction("coupon.create", "Coupon", coupon.id);
   revalidatePath("/admin/coupons");
+}
+
+export async function updateSettingAction(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const key = String(formData.get("key") ?? "");
+  const value = String(formData.get("value") ?? "").trim();
+
+  if (!SETTING_KEYS.includes(key as SettingKey)) throw new Error("Unknown setting key.");
+  if (!value) throw new Error("Value cannot be empty — leave the form untouched to keep the current value.");
+
+  await setSetting(key as SettingKey, value, admin.id);
+  revalidatePath("/admin/settings");
 }
 
 function priceTierForCents(cents: number) {

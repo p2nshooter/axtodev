@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { LayoutDashboard, BookOpen, FolderTree, ShoppingBag, Tag, Newspaper, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, BookOpen, FolderTree, ShoppingBag, Tag, Newspaper, ShieldAlert, KeyRound } from "lucide-react";
 import { getCurrentSession } from "@/lib/session";
 
 export const runtime = "edge";
@@ -14,6 +14,7 @@ const NAV = [
   { href: "/admin/coupons", label: "Coupons", icon: Tag },
   { href: "/admin/blog", label: "Blog", icon: Newspaper },
   { href: "/admin/dmca", label: "DMCA Claims", icon: ShieldAlert },
+  { href: "/admin/settings", label: "Integration Settings", icon: KeyRound },
 ];
 
 const ADMIN_ROLES = new Set(["ADMIN", "SUPER_ADMIN", "EDITOR", "SUPPORT"]);

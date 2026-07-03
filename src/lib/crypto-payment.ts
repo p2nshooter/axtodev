@@ -3,22 +3,29 @@ import { getPrisma } from "@/lib/prisma";
 import { CRYPTO_ASSETS, CRYPTO_QUOTE_TTL_SECONDS, type CryptoAsset } from "@/lib/constants";
 import { isValidWalletAddress } from "@/lib/wallet-address";
 import { markOrderPaid } from "@/server/order-service";
+import { getSetting, type SettingKey } from "@/server/settings-service";
 
 const COINGECKO_BASE = "https://api.coingecko.com/api/v3";
 
 /** Returns only the crypto assets that have a configured, format-valid
- *  receiving address — anything misconfigured is hidden rather than risked. */
-export function getEnabledCryptoAssets() {
-  return CRYPTO_ASSETS.filter((def) => {
-    const address = process.env[def.envVar];
-    return Boolean(address) && isValidWalletAddress(def.asset, address!);
-  });
+ *  receiving address — anything misconfigured is hidden rather than risked.
+ *  Addresses are admin-editable at runtime via /admin/settings (encrypted
+ *  in the DB), falling back to the matching env var. */
+export async function getEnabledCryptoAssets() {
+  const results = await Promise.all(
+    CRYPTO_ASSETS.map(async (def) => {
+      const address = await getSetting(def.envVar as SettingKey);
+      const enabled = Boolean(address) && isValidWalletAddress(def.asset, address!);
+      return enabled ? def : null;
+    }),
+  );
+  return results.filter((def): def is (typeof CRYPTO_ASSETS)[number] => def !== null);
 }
 
-export function getWalletAddress(asset: CryptoAsset): string | undefined {
+export async function getWalletAddress(asset: CryptoAsset): Promise<string | undefined> {
   const def = CRYPTO_ASSETS.find((a) => a.asset === asset);
   if (!def) return undefined;
-  const address = process.env[def.envVar];
+  const address = await getSetting(def.envVar as SettingKey);
   if (!address || !isValidWalletAddress(asset, address)) return undefined;
   return address;
 }
@@ -95,7 +102,7 @@ const providerForAsset: Record<CryptoAsset, string> = {
  * doesn't over/undercharge the customer.
  */
 export async function createCryptoQuote(orderId: string, asset: CryptoAsset) {
-  const address = getWalletAddress(asset);
+  const address = await getWalletAddress(asset);
   if (!address) {
     throw new Error(`${asset} is not available for payment right now.`);
   }

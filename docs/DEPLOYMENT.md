@@ -55,3 +55,18 @@ pnpm dev            # plain Next.js dev server, falls back to local SQLite (DATA
 pnpm cf:build        # build the Pages-compatible output
 pnpm cf:preview       # run the built output locally against real D1/R2/KV bindings via wrangler
 ```
+
+## Promoting the first admin account
+
+There is intentionally no automated "promote to admin" endpoint or CI job —
+that would be a standing privilege-escalation surface. Instead:
+
+1. Register normally at `/register` with the account's own email and password.
+2. Run one SQL statement against production, scoped to that one email, via
+   either the Cloudflare Dashboard (Workers & Pages → D1 → `axto-dev-db` →
+   Console tab) or `wrangler d1 execute axto-dev-db --remote --command "..."`
+   from a machine with `wrangler login` already authenticated:
+   ```sql
+   UPDATE user SET role = 'SUPER_ADMIN' WHERE email = 'the-account-email@example.com';
+   ```
+3. Sign out and back in — the new role takes effect on next session refresh.

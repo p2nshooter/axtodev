@@ -1,4 +1,5 @@
 import "server-only";
+import { getSetting } from "@/server/settings-service";
 
 const PAYPAL_API_BASE =
   process.env.PAYPAL_ENV === "sandbox"
@@ -10,10 +11,12 @@ let cachedToken: { value: string; expiresAt: number } | undefined;
 async function getAccessToken(): Promise<string> {
   if (cachedToken && cachedToken.expiresAt > Date.now()) return cachedToken.value;
 
-  const clientId = process.env.PAYPAL_CLIENT_ID;
-  const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
+  const [clientId, clientSecret] = await Promise.all([
+    getSetting("PAYPAL_CLIENT_ID"),
+    getSetting("PAYPAL_CLIENT_SECRET"),
+  ]);
   if (!clientId || !clientSecret) {
-    throw new Error("PayPal is not configured (PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET missing).");
+    throw new Error("PayPal is not configured (set PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET in /admin/settings).");
   }
 
   const res = await fetch(`${PAYPAL_API_BASE}/v1/oauth2/token`, {
@@ -88,7 +91,7 @@ export async function verifyPayPalWebhookSignature(params: {
   headers: Headers;
   body: string;
 }): Promise<boolean> {
-  const webhookId = process.env.PAYPAL_WEBHOOK_ID;
+  const webhookId = await getSetting("PAYPAL_WEBHOOK_ID");
   if (!webhookId) throw new Error("PAYPAL_WEBHOOK_ID is not configured.");
 
   const token = await getAccessToken();

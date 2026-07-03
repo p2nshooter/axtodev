@@ -1,13 +1,23 @@
 # Crypto Payment Wallets
 
-AXTO.dev accepts crypto payments by generating a per-order quote (live fiat
-→ crypto rate from CoinGecko, valid for 20 minutes) and asking the customer
-to send the exact amount to a fixed receiving address for that asset. This
-is intentionally simple (no custodial exchange integration, no private keys
-touch the server) — the tradeoff is that **payment confirmation is manual**
-(admin marks an order paid after verifying the on-chain transaction) unless
-you later wire up a chain-monitoring webhook (see "Automating confirmation"
-below).
+AXTO.dev offers two crypto payment paths, both configured via
+**`/admin/settings`** (encrypted in the database, no redeploy needed):
+
+1. **NOWPayments (instant, recommended)** — `src/lib/nowpayments.ts`. The
+   customer picks any supported coin on NOWPayments' hosted checkout page;
+   their IPN webhook (`/api/webhooks/nowpayments`, signature-verified)
+   confirms the order automatically the moment the payment settles.
+   Requires `NOWPAYMENTS_API_KEY` and `NOWPAYMENTS_IPN_SECRET` (from your
+   NOWPayments dashboard → Settings → IPN).
+2. **Direct wallet address (manual, fallback)** — generates a per-order
+   quote (live fiat → crypto rate from CoinGecko, valid for 20 minutes) and
+   asks the customer to send the exact amount to a fixed receiving address.
+   No custodial integration, no private keys touch the server — the
+   tradeoff is that **payment confirmation is manual** (admin marks an
+   order paid in `/admin/orders` after verifying the on-chain transaction).
+
+Both appear at checkout only when configured; if neither is set up, crypto
+payment is hidden entirely rather than shown broken.
 
 ## ⚠️ Before going live — verify every address yourself
 
