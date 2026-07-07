@@ -19,6 +19,10 @@ export const SETTING_KEYS = [
   "CRYPTO_ADDRESS_SOL",
   "CRYPTO_ADDRESS_USDT_TRC20",
   "CRYPTO_ADDRESS_DOGE",
+  "NVIDIA_API_KEY_PRIMARY",
+  "NVIDIA_API_KEY_SPEAKER_DETECTION",
+  "NVIDIA_API_KEY_VISION",
+  "NVIDIA_API_KEY_EXTRA",
 ] as const;
 
 export type SettingKey = (typeof SETTING_KEYS)[number];
@@ -37,6 +41,10 @@ const SETTING_LABELS: Record<SettingKey, string> = {
   CRYPTO_ADDRESS_SOL: "SOL Receiving Address",
   CRYPTO_ADDRESS_USDT_TRC20: "USDT (TRC20) Receiving Address",
   CRYPTO_ADDRESS_DOGE: "DOGE Receiving Address",
+  NVIDIA_API_KEY_PRIMARY: "NVIDIA API Key (Primary)",
+  NVIDIA_API_KEY_SPEAKER_DETECTION: "NVIDIA API Key (Maxine Active Speaker Detection)",
+  NVIDIA_API_KEY_VISION: "NVIDIA API Key (Nemotron-Nano VL Image/Video)",
+  NVIDIA_API_KEY_EXTRA: "NVIDIA API Key (Additional)",
 };
 
 export function settingLabel(key: SettingKey): string {

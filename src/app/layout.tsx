@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
+import Script from "next/script";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SiteHeader } from "@/components/site/site-header";
@@ -30,6 +31,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${playfair.variable} font-sans`}>
+        {/* strategy="beforeInteractive" makes Next.js inject these into the
+            rendered document's <head>, regardless of where they sit in the
+            component tree — the officially recommended way to place
+            head-level third-party scripts in the App Router. */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6371903555702163"
+          crossOrigin="anonymous"
+          strategy="beforeInteractive"
+        />
+        <Script async src="https://www.ezojs.com/ezoic/sa.min.js" strategy="beforeInteractive" />
+        <Script id="ezstandalone-init" strategy="beforeInteractive">
+          {"window.ezstandalone = window.ezstandalone || {}; ezstandalone.cmd = ezstandalone.cmd || [];"}
+        </Script>
+        <Script src="https://ezoicanalytics.com/analytics.js" strategy="beforeInteractive" />
         <ThemeProvider>
           <div className="flex min-h-screen flex-col">
             <SiteHeader />
