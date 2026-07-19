@@ -221,6 +221,194 @@ On-chain payments are final — check the address and amount, because there is n
 
 Crypto will not replace cards for everyone. But for the growing slice of readers it serves, it turns 'my payment failed' into 'my book is downloading' — which is the only metric a checkout has.`,
   },
+  {
+    slug: "brief-history-of-ebooks",
+    title: "A Brief History of the E-Book: From Index Cards to Your Pocket",
+    excerpt:
+      "The e-book is older than the web. A tour from Project Gutenberg's first typed text to the reflowable libraries of today.",
+    date: "2026-07-18",
+    minutes: 6,
+    content: `In 1971, a student with spare mainframe time typed the United States Declaration of Independence into a computer and posted it for anyone to copy. Michael Hart's gesture became Project Gutenberg, and the e-book was born — twenty years before the web existed to distribute it.
+
+## The slow decades
+
+For thirty years digital books were plain-text curiosities read by hobbyists on terminals. The pieces assembled gradually: the PDF (1993) made documents portable; early handhelds proved people would read on screens; and public-domain volunteers quietly built the first digital libraries while publishers looked away.
+
+## The decade everything changed
+
+Between 2006 and 2010, e-ink devices made screen-reading restful, the smartphone put a bookstore in every pocket, and EPUB standardized the reflowable book. Sales exploded — and so did the disputes that still shape the market: pricing wars, DRM debates, and the question of whether you buy a digital book or merely rent it.
+
+## Where we actually landed
+
+The paper-versus-pixels war ended in coexistence: print holds gift books and picture books; digital dominates convenience, backlists, niche publishing, and — through self-publishing — authorship itself, with more titles released now than at any point in history. The e-book's real revolution was never the screen. It was distribution: any book, anywhere on earth, in seconds — including the entire public domain, free, exactly as a student with a mainframe intended.`,
+  },
+  {
+    slug: "speed-reading-myths-and-truths",
+    title: "Speed Reading: The Myths, the Physiology, and What Actually Helps",
+    excerpt:
+      "Courses promise 1,000 words per minute with full comprehension. Eye-movement research says otherwise — but real gains do exist.",
+    date: "2026-07-19",
+    minutes: 6,
+    content: `The pitch is seductive: unlock the reading speed schools suppressed, absorb a book at lunch. The physiology, unfortunately, has opinions.
+
+## What the eye allows
+
+Reading proceeds in fixations — brief stops during which the eye takes in a narrow window of text. Vision outside that window is too blurry for word recognition; no training enlarges the retina. Comprehension studies of extreme speed readers keep finding the same result: past roughly double a strong natural pace, understanding collapses toward skimming-level guesswork.
+
+## The myths, specifically
+
+Eliminating subvocalization (the inner voice) mostly eliminates comprehension of complex prose — the voice is part of how syntax gets parsed. Reading whole pages in a glance is photographic-memory folklore. And comprehension-preserving 1,000 wpm claims have repeatedly failed controlled testing.
+
+## The gains that are real
+
+Ordinary readers DO harbor real speed upside: reducing regressions (needless re-reading of lines already understood), previewing structure so the brain knows where the argument is going, and matching gear to material — cruising through familiar exposition, slowing for dense argument. Skimming itself is a legitimate skill when chosen consciously: surveying a book to decide WHETHER to read it deserves speed.
+
+## The uncomfortable truth
+
+The readers who finish fifty books a year do not read faster. They read more often, quit bad books sooner, and choose better. Time-in-pages beats words-per-minute — and unlike the retina, time responds to habit.`,
+  },
+  {
+    slug: "art-of-annotating-books",
+    title: "Marginalia in the Digital Age: The Art of Annotating What You Read",
+    excerpt:
+      "Highlights you never revisit are decoration. How readers from Darwin to today turn marking into thinking.",
+    date: "2026-07-20",
+    minutes: 6,
+    content: `Great readers have always defaced their books. Darwin's margins argue with authors; medieval scholars glossed their manuscripts into palimpsests. Annotation is not note-taking beside reading — it IS reading, made visible.
+
+## Why marking works
+
+Passive highlighting barely helps memory, and research says so. What works is elaboration: restating a claim in your own words, objecting, connecting to something else you know. The pen (or keyboard) forces the restatement; the restatement forces the understanding. A margin question mark that you later answer teaches more than a page of yellow stripes.
+
+## A simple system that scales
+
+Keep marks cheap and layered: underline the claim, star the genuinely important, question-mark the doubtful, and write one honest sentence at each chapter end — what did this chapter actually say? Those chapter sentences, collected, become a summary you wrote without noticing.
+
+## Digital advantages worth using
+
+E-book annotation adds what paper never could: search across every note you have ever made, export of highlights into your own files, and marks that survive lending, moving, and second copies. The exported-highlights review — rereading your notes a week later and keeping only what still matters — is where fleeting impressions become durable knowledge.
+
+## The permission slip
+
+Some readers still feel books are too sacred to mark. Consider the reversal: an unmarked book leaves no evidence you were there. The conversation in the margins is the reader's half of authorship — and in digital editions, not even the paper objects.`,
+  },
+  {
+    slug: "where-to-start-with-classics",
+    title: "Where to Start With the Classics (Without Pretending to Enjoy Suffering)",
+    excerpt:
+      "The classics are free, abundant — and intimidating. An honest on-ramp that begins with pleasure instead of duty.",
+    date: "2026-07-21",
+    minutes: 7,
+    content: `The classics carry a double reputation: essential and unreadable. Both halves are propaganda. The canon is simply the books readers kept choosing after the marketing died — which means it is full of page-turners wearing respectable covers.
+
+## Start where the pleasure is proven
+
+Adventure has aged best: The Count of Monte Cristo is a revenge thriller, Treasure Island a perfect machine, Sherlock Holmes the template for every detective since. Wit survives too — Austen's Pride and Prejudice remains genuinely funny, Wilde still lands every line. Horror's founders — Dracula, Frankenstein, Jekyll and Hyde — read faster than their imitators.
+
+## The translation caveat
+
+For works in translation, the translator IS the experience. A stiff Victorian rendering can bury a lively original; a modern translation can resurrect it. Sample before committing — public-domain status means multiple translations often exist, and choosing well matters more than trying harder.
+
+## Permission slips
+
+Abridgment is not a sin for a first pass at the doorstoppers. Audio counts — these books were mostly read aloud in their own era. Quitting counts too: bouncing off one classic says nothing about the other thousand. And chronology is not a syllabus; nobody must earn Dickens by first surviving epics they did not choose.
+
+## Why bother at all
+
+Beyond pleasure, the classics are the shared reference layer of everything written since — read a handful and half of modern culture starts winking at you. And every one of them is in the public domain: the entire foundation of literature, legally free, one download away.`,
+  },
+  {
+    slug: "drm-explained-for-readers",
+    title: "DRM Explained: What That Lock on Your E-Book Actually Does",
+    excerpt:
+      "Digital rights management shapes what you can do with books you paid for. How it works, why it exists, and how to buy wisely.",
+    date: "2026-07-22",
+    minutes: 6,
+    content: `Buy a paper book and it is unambiguously yours — lend it, resell it, read it in any chair. Buy some e-books and a technology called DRM (digital rights management) quietly rewrites the deal.
+
+## What DRM does
+
+DRM encrypts the book file so that only authorized software, tied to your account, can open it. The intent is piracy prevention; the side effects land on paying customers: books locked to one vendor's apps, lending restricted or impossible, and libraries that evaporate when an account closes, a region changes, or a store shuts down — all of which have happened, repeatedly, to real readers.
+
+## The case for and against
+
+Publishers argue DRM protects authors' income, and for high-piracy categories there is something to it. The counterargument is empirical: pirates strip DRM in minutes, so the lock mostly inconveniences the honest — while teaching them that buying legally delivers LESS ownership than piracy would. Many successful publishers now sell DRM-free on exactly that logic: treat buyers as customers, not suspects.
+
+## Buying wisely
+
+Before purchasing, learn which kind of store you are in. DRM-free stores sell you a file: back it up, convert formats, keep it forever. DRM stores sell you access: fine for disposable reads, risky for a permanent library. Watermarked (social) DRM is the middle path — an invisible purchase stamp, no locks. A store that says plainly what you get, keeps its catalog legal, and lets you download your files is making you an owner. That is the standard worth paying for.`,
+  },
+  {
+    slug: "building-a-personal-canon",
+    title: "Beyond the Bestseller List: Building a Personal Reading Canon",
+    excerpt:
+      "Algorithms feed you what everyone reads. A method for choosing books that compound into something distinctly yours.",
+    date: "2026-07-23",
+    minutes: 6,
+    content: `Bestseller lists answer one question: what is everyone buying this month? A personal canon answers a better one: which books, together, make your thinking more yours?
+
+## The compounding principle
+
+Books multiply when they connect. Three scattered novels entertain three times; three books circling one obsession — the sea, betrayal, how cities work — start talking to each other, and the reader becomes the room where the conversation happens. Choose clusters, not just titles.
+
+## Sources better than charts
+
+Follow the bibliography: the books your favorite authors cite are pre-filtered by someone whose judgment you already trust. Follow the decades: what survived fifty years survived for reasons; the public domain is a bestseller list scored by time. Follow your annotations: the margins where you argued most are pointing at your next cluster.
+
+## The keeping and the culling
+
+A canon needs a shelf — physical or digital — separate from the everything-pile: the books you would replace if lost, reread on purpose, and press into friends' hands. Review it yearly; demote without guilt. The discipline is the point: knowing WHY each book earned its place is a portrait of your own mind, updated annually.
+
+## Why it matters now
+
+When recommendation engines optimize for what people like you clicked, reading identically becomes the default. A deliberate canon is quiet resistance — the difference between having read things and having become someone by reading them.`,
+  },
+  {
+    slug: "supporting-indie-authors",
+    title: "How Readers Actually Move the Needle for Independent Authors",
+    excerpt:
+      "Indie authors live or die on reader actions that cost nothing. The five that matter, ranked by real impact.",
+    date: "2026-07-24",
+    minutes: 5,
+    content: `Behind every independent e-book is an author doing the jobs a publishing house would staff: editing, covers, marketing, all of it. Which means ordinary readers hold unusual power — specific, free actions that visibly change an indie book's fate.
+
+## Ranked by impact
+
+One: reviews, even two sentences. Store algorithms gate visibility behind review counts, and the difference between four reviews and forty is the difference between invisible and discoverable. Honest and short beats polished and never-written.
+
+Two: finishing and buying the next one. Series continuation is the metric indie careers are built on; the sequel purchase tells every algorithm the author is worth showing.
+
+Three: the personal recommendation. One reader pressing a book on one friend outperforms most paid advertising — and unlike advertising, it compounds.
+
+Four: wishlists, follows, and preorders. These queue signals tell platforms an audience is waiting, and platforms reward evidence.
+
+Five: buying where the author keeps more. The same book often earns the author dramatically different amounts by storefront; direct and indie-friendly marketplaces send more of your money to the person who wrote the words.
+
+## The mindset shift
+
+None of this is charity. Indie publishing is where genres experiment first and where voices without connections get their shot; readers who engage are stocking their own future shelves. The five actions above are simply the reader's side of a very old bargain: authors make the stories, readers make the careers.`,
+  },
+  {
+    slug: "reading-slumps-recovery",
+    title: "The Reading Slump: Why It Happens and How Readers Recover",
+    excerpt:
+      "Every reader eventually stalls — weeks where no book sticks. The mechanics of slumps and the gentle exits that work.",
+    date: "2026-07-25",
+    minutes: 5,
+    content: `It happens to devoted readers most of all: suddenly every book feels like homework, the pile glares from the nightstand, and a month disappears without a finished chapter. The slump is not a character flaw. It is usually mechanical — and mechanically fixable.
+
+## The usual causes
+
+A book mismatch you refuse to admit: the current title bores you, but quitting feels like failure, so reading itself takes the blame. Depletion: stressful seasons shrink the attention reading spends. Overshoot: after a masterpiece, everything else tastes flat. And obligation creep: when every book is for growth or work, the appetite quietly leaves.
+
+## The exits that work
+
+Declare bankruptcy on the current book — put it away without ceremony; it will wait. Return to a known pleasure: rereading an old favorite rebuilds the habit on guaranteed enjoyment, which is why comfort rereads dominate slump recoveries. Shrink the unit: one chapter, even one page, counts; momentum outranks volume. Change the channel: audio during walks often restarts a stalled reader precisely because it feels like cheating. And lower the stakes: read something purely fun and admit no one is grading you.
+
+## The reframe
+
+A slump usually marks a transition — the reader you were finishing, the reader you are becoming not yet stocked. Treat it as a browsing season: sample widely, quit freely, follow curiosity without commitment. Appetite returns the way it always left: one book that suddenly will not let go.`,
+  },
 ];
 
 export function getEditorialPost(slug: string): EditorialPost | undefined {
