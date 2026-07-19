@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getPrisma } from "@/lib/prisma";
 import { getAppUrl } from "@/lib/site-url";
+import { EDITORIAL_POSTS } from "@/content/editorial-posts";
 
 export const runtime = "edge";
 
@@ -22,5 +23,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...categories.map((c) => ({ url: `${baseUrl}/category/${c.slug}`, changeFrequency: "daily" as const, priority: 0.7 })),
     ...books.map((b) => ({ url: `${baseUrl}/books/${b.slug}`, lastModified: b.updatedAt, changeFrequency: "weekly" as const, priority: 0.9 })),
     ...posts.map((p) => ({ url: `${baseUrl}/blog/${p.slug}`, lastModified: p.updatedAt, changeFrequency: "monthly" as const, priority: 0.4 })),
+    ...EDITORIAL_POSTS.filter((e) => !posts.some((p) => p.slug === e.slug)).map((e) => ({
+      url: `${baseUrl}/blog/${e.slug}`,
+      lastModified: new Date(e.date),
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    })),
   ];
 }
