@@ -29,6 +29,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Google AdSense — loader + account meta on every page. */}
+        <meta name="google-adsense-account" content="ca-pub-6371903555702163" />
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6371903555702163"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans`}>
         <ThemeProvider>
           <div className="flex min-h-screen flex-col">
