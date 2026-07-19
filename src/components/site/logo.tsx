@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 export function Logo({ className }: { className?: string }) {
   return (
-    <Link href="/" className={cn("flex items-center gap-2 font-serif text-xl font-bold tracking-wide", className)}>
+    <Link href="/" className={cn("flex shrink-0 items-center gap-1.5 font-serif text-base font-bold tracking-wide sm:gap-2 sm:text-xl", className)}>
       <span
         aria-hidden
         className="flex h-8 w-8 items-center justify-center rounded-full border border-gold-400/60 gold-gradient-text text-base font-black"

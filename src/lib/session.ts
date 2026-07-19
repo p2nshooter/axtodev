@@ -24,3 +24,14 @@ export async function requireAdmin() {
   }
   return user;
 }
+
+/** Stricter than requireAdmin — for sensitive operations like credential
+ *  management, where EDITOR/SUPPORT should not have access. */
+export async function requireSuperAdmin() {
+  const user = await requireUser();
+  const role = (user as unknown as { role?: string }).role;
+  if (role !== "ADMIN" && role !== "SUPER_ADMIN") {
+    throw new Error("FORBIDDEN");
+  }
+  return user;
+}

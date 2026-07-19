@@ -1,13 +1,16 @@
 /**
- * Seeds languages, the category taxonomy, and a handful of sample
- * originally-written e-books so the storefront isn't empty in
- * development/staging. Safe to re-run — every write is an upsert.
+ * Seeds languages, the category taxonomy, one fully realized flagship
+ * e-book (real content, all 8 site languages), and a DRAFT starter
+ * catalog (title/TOC scaffolding only — intentionally never published,
+ * since selling placeholder text as a finished e-book would misrepresent
+ * the product to customers). Safe to re-run — every write is an upsert.
  *
  * Run with: pnpm db:seed
  */
 import { PrismaClient } from "@prisma/client";
 import { PRICE_TIERS, POPULAR_CATEGORIES, SUPPORTED_LANGUAGES } from "../src/lib/constants";
 import { slugify } from "../src/lib/utils";
+import { FLAGSHIP_BOOK_SLUG, FLAGSHIP_TRANSLATIONS } from "./content/flagship-book";
 
 const prisma = new PrismaClient();
 
@@ -49,11 +52,46 @@ async function main() {
     sortOrder++;
   }
 
-  console.log("Seeding sample e-books…");
+  console.log("Seeding flagship e-book (real content, all 8 languages)…");
+  const growthCategoryId = categoryByName.get("Pengembangan Diri")!;
+  const flagshipExists = await prisma.book.findUnique({ where: { slug: FLAGSHIP_BOOK_SLUG } });
+  if (!flagshipExists) {
+    await prisma.book.create({
+      data: {
+        slug: FLAGSHIP_BOOK_SLUG,
+        categoryId: growthCategoryId,
+        priceTier: "TIER_3_GROWTH",
+        priceCents: 1900,
+        status: "PUBLISHED",
+        licenseType: "ORIGINAL",
+        author: "AXTO.dev Editorial Team",
+        readingTimeMinutes: 35,
+        difficultyLevel: "Beginner",
+        isFeatured: true,
+        isBestSeller: true,
+        isNew: false,
+        publishedAt: new Date(),
+        translations: {
+          create: FLAGSHIP_TRANSLATIONS.map((t) => ({
+            languageId: languageByCode.get(t.languageCode)!,
+            title: t.title,
+            subtitle: t.subtitle,
+            description: t.description,
+            tableOfContents: JSON.stringify(t.tableOfContents),
+            keywords: t.keywords,
+          })),
+        },
+        statusHistory: { create: [{ status: "PUBLISHED", note: "Flagship launch title — real content, 8 languages" }] },
+      },
+    });
+  }
+
+  console.log("Seeding DRAFT starter catalog (scaffolding only — not for sale until real manuscripts are added)…");
   for (const tier of PRICE_TIERS) {
     const categoryId = categoryByName.get(tier.categoryName)!;
     for (const [i, title] of tier.sampleTitles.entries()) {
       const slug = `${slugify(title)}-${tier.key.toLowerCase()}`;
+      if (slug === FLAGSHIP_BOOK_SLUG) continue;
       const priceCents = Math.round((tier.minCents + tier.maxCents!) / 2) || tier.minCents + 500;
 
       const existing = await prisma.book.findUnique({ where: { slug } });
@@ -65,25 +103,22 @@ async function main() {
           categoryId,
           priceTier: tier.key,
           priceCents,
-          status: "PUBLISHED",
+          status: "DRAFT", // never auto-published — see file header
           licenseType: "ORIGINAL",
+          licenseSource: "STARTER CATALOG SCAFFOLD — title/TOC only, needs a real manuscript before publishing.",
           author: "AXTO.dev Editorial Team",
           readingTimeMinutes: 45 + i * 10,
           difficultyLevel: i % 2 === 0 ? "Beginner" : "Intermediate",
-          isFeatured: i === 0,
-          isBestSeller: i === 1,
-          isNew: i >= 2,
-          publishedAt: new Date(),
           translations: {
             create: [
               {
                 languageId: enId,
                 title,
-                subtitle: `An original AXTO.dev guide — ${tier.badge}`,
+                subtitle: `Planned AXTO.dev guide — ${tier.badge}`,
                 description:
-                  `${title} is an original AXTO.dev publication written from scratch for learners who want a ` +
-                  `clear, practical path forward. This is placeholder catalog copy generated for the initial ` +
-                  `store setup — replace it with your real manuscript before going live.`,
+                  `Catalog placeholder for "${title}". This title is scaffolded (category, price tier, and a draft ` +
+                  `table of contents) but has no manuscript yet, so it's kept in DRAFT and hidden from the storefront. ` +
+                  `Write the real content in /admin/books, then publish.`,
                 tableOfContents: JSON.stringify([
                   "Introduction & how to use this book",
                   "Foundations",
@@ -96,7 +131,7 @@ async function main() {
               },
             ],
           },
-          statusHistory: { create: [{ status: "PUBLISHED" }] },
+          statusHistory: { create: [{ status: "DRAFT" }] },
         },
       });
     }

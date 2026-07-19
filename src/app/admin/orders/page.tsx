@@ -55,7 +55,7 @@ export default async function AdminOrdersPage() {
                         </span>
                       )}
                     </span>
-                    {payment.status === "PENDING" && payment.provider !== "PAYPAL" && (
+                    {payment.status === "PENDING" && payment.provider !== "PAYPAL" && payment.provider !== "NOWPAYMENTS" && (
                       <form action={confirmCryptoPaymentAction} className="flex items-center gap-2">
                         <input type="hidden" name="paymentId" value={payment.id} />
                         <Input name="txHash" placeholder="on-chain tx hash" className="h-8 w-48 text-xs" required />

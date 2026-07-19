@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useCart } from "@/components/checkout/cart-store";
 import { useSession, signOut } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
   { href: "/category/belajar-dasar", label: "Belajar Dasar" },
@@ -34,9 +35,9 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/85 backdrop-blur-md">
-      <div className="container flex h-16 items-center justify-between gap-4">
-        <div className="flex items-center gap-6">
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileOpen((v) => !v)}>
+      <div className="container flex h-16 items-center justify-between gap-2 sm:gap-4">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-6">
+          <Button variant="ghost" size="icon" className="shrink-0 md:hidden" onClick={() => setMobileOpen((v) => !v)}>
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
           <Logo />
@@ -56,10 +57,11 @@ export function SiteHeader() {
           </div>
         </form>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex shrink-0 items-center gap-0.5 sm:gap-1.5">
           <Button
             variant="ghost"
             size="icon"
+            className="hidden min-[420px]:inline-flex"
             aria-label="Toggle theme"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           >
@@ -107,27 +109,37 @@ export function SiteHeader() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="gold" size="sm" asChild className="ml-1">
+            <Button variant="gold" size="sm" asChild className="ml-0.5 shrink-0 whitespace-nowrap px-2.5 sm:ml-1 sm:px-4">
               <Link href="/login">Sign in</Link>
             </Button>
           )}
         </div>
       </div>
 
-      {mobileOpen && (
-        <nav className="flex flex-col gap-1 border-t border-border/60 px-4 pb-4 pt-2 md:hidden">
-          {NAV_LINKS.map((link) => (
+      <div
+        className={cn(
+          "grid overflow-hidden border-border/60 transition-all duration-300 ease-out md:hidden",
+          mobileOpen ? "grid-rows-[1fr] border-t opacity-100" : "grid-rows-[0fr] opacity-0",
+        )}
+      >
+        <nav className="flex min-h-0 flex-col gap-1 px-4 pb-4 pt-2">
+          <form action="/search" className="relative mb-2">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input name="q" placeholder="Search e-books…" className="pl-9" />
+          </form>
+          {NAV_LINKS.map((link, i) => (
             <Link
               key={link.href}
               href={link.href}
-              className="rounded-md px-2 py-2 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground"
+              className="animate-fade-in-up rounded-md px-2 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              style={{ animationDelay: mobileOpen ? `${i * 40}ms` : "0ms" }}
               onClick={() => setMobileOpen(false)}
             >
               {link.label}
             </Link>
           ))}
         </nav>
-      )}
+      </div>
     </header>
   );
 }
