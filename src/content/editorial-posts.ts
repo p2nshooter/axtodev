@@ -409,6 +409,289 @@ Declare bankruptcy on the current book — put it away without ceremony; it will
 
 A slump usually marks a transition — the reader you were finishing, the reader you are becoming not yet stocked. Treat it as a browsing season: sample widely, quit freely, follow curiosity without commitment. Appetite returns the way it always left: one book that suddenly will not let go.`,
   },
+  {
+    slug: "how-to-read-a-difficult-book",
+    title: "How to Read a Difficult Book Without Giving Up on Page 30",
+    excerpt:
+      "Great books are often hard on purpose. A practical method for reading above your comfort level — and finishing.",
+    date: "2026-07-27",
+    minutes: 7,
+    content: `Some books are hard because they are badly written. Others are hard because they are doing something worth the difficulty — compressing a lifetime of thought, or asking you to hold several ideas at once. Learning to tell the two apart, and to work through the second kind, is one of the highest-return skills a reader can build.
+
+## First, survey before you read
+
+Before the first chapter, spend ten minutes with the whole book. Read the table of contents, the preface, the first and last pages of each chapter, the index. You are building a map. A difficult book is far less intimidating once you know where it is going, because your brain stops spending energy on suspense and starts spending it on understanding.
+
+## Read it through once, fast, without stopping
+
+The classic advice from Mortimer Adler still holds: on a hard book, make a complete first pass without pausing to look things up or reread. Understand what you can; let the rest wash over you. You will grasp perhaps sixty percent — and that sixty percent gives the second reading the context it needs. Most people fail at difficult books because they try to understand page two perfectly before allowing themselves to reach page three.
+
+## Mark the skeleton, not everything
+
+On the second pass, find the spine: the central question, the main claim, the handful of terms the author uses in a special way. Write the argument in your own words in a sentence or two. If you cannot, you have found exactly where your understanding stops — which is the most useful thing a reader can know.
+
+## Argue back
+
+Reading a serious book is a conversation, not a download. In the margins, agree, object, ask, connect. The physical act of responding keeps attention from sliding and turns passive exposure into real thinking. A book you argued with is a book you will remember.
+
+## Know when hard means bad
+
+Difficulty is worth it when the payoff — a new way of seeing — keeps arriving. It is not worth it when the fog never lifts and nothing rewards the climb. Quitting a genuinely bad hard book is not failure; it is taste. The goal was never to suffer. It was to understand.`,
+  },
+  {
+    slug: "the-case-for-rereading",
+    title: "The Case for Rereading: Why the Second Time Is the Real First Time",
+    excerpt:
+      "We treat reading as consumption — finish it, move on. But the books that shape us are almost always the ones we return to.",
+    date: "2026-07-29",
+    minutes: 5,
+    content: `There is a quiet snobbery in the culture of reading: the person who has read a thousand books is admired, the person who has read one book a thousand times is thought slightly strange. Yet almost everyone who loves reading has a small shelf of books they return to — and those, not the thousand, are the ones that made them who they are.
+
+## You never read the same book twice
+
+A book is fixed; you are not. The novel you read at twenty and the one you reread at forty are different objects, because the reader changed underneath the words. Passages that meant nothing suddenly ache; jokes you missed land; a character you despised becomes the one you understand best. Rereading is a way of measuring your own growth against a fixed ruler.
+
+## The first reading is for plot; the rest are for everything else
+
+On a first pass, suspense hijacks attention — what happens next crowds out how it is being done. Only once you know the ending can you see the craft: the foreshadowing, the structure, the sentence that quietly contained the whole book. This is why writers reread obsessively. The seams only show when you already know the shape.
+
+## Depth is a kind of abundance
+
+We chase new books partly out of anxiety — so much to read, so little time. But breadth without depth is its own poverty. Ten books known intimately furnish a mind more richly than a thousand skimmed and forgotten. Rereading is permission to stop hoarding and start owning.
+
+## How to build a rereading habit
+
+Keep a short list — five or six titles — of books that repaid attention. Return to one each year, ideally at a different age or season of life than before. Read slowly, without the pressure to finish, and watch for what has changed. Not the book. You.`,
+  },
+  {
+    slug: "note-taking-systems-for-readers",
+    title: "Commonplace Books and Zettelkasten: Note-Taking Systems That Actually Compound",
+    excerpt:
+      "Highlighting feels productive and changes nothing. Two centuries-tested systems for turning reading into knowledge you can use.",
+    date: "2026-07-31",
+    minutes: 7,
+    content: `Most reading evaporates. A week after finishing a good book, most readers can recall a vague mood and perhaps one idea. The problem is not memory; it is method. Highlighting marks a passage as important and then does nothing with it. The systems that work share one trait: they force you to rewrite ideas in your own words and connect them to what you already know.
+
+## The commonplace book
+
+For centuries — from Marcus Aurelius to Locke to Virginia Woolf — serious readers kept a commonplace book: a single notebook where they copied passages worth keeping, alongside their own reactions. The act of transcription is the point. Choosing what to copy is judgment; writing it out is a second, slower reading; adding your comment turns a quote into a thought. Over years, the book becomes a portrait of a mind, searchable by the person who made it.
+
+## The Zettelkasten
+
+The sociologist Niklas Luhmann published more than seventy books and hundreds of articles, and credited a box of index cards — his Zettelkasten, or slip-box. Each card held one idea in his own words, given a unique number, and linked to related cards. Knowledge accumulated not as a pile but as a web: ideas that could be reached from many directions, that collided and produced new ones. The digital versions today are simply this idea with hyperlinks.
+
+## The principle underneath both
+
+Write ideas in your own words, keep them small enough to reuse, and connect them. Whether you use a paper notebook or software matters far less than obeying those three rules. A note you merely copied is a bookmark. A note you rephrased and linked is a tool.
+
+## Start absurdly small
+
+Do not build a system before you have notes. After the next book you read, write three cards: three ideas, in your own words, each ending with why it matters to you. Do that for ten books and you will have something no highlight reel can give — the beginning of a body of thought that is genuinely yours.`,
+  },
+  {
+    slug: "audiobooks-vs-reading-research",
+    title: "Audiobooks vs. Reading: What the Research Actually Says",
+    excerpt:
+      "Is listening 'really reading'? The honest, evidence-based answer — and how to get the most from each.",
+    date: "2026-08-02",
+    minutes: 6,
+    content: `The question arrives with a whiff of guilt: does listening to a book count? Behind it is an anxiety that audio is a lazier, lesser form of reading. The research offers a more interesting answer than either the defenders or the skeptics want.
+
+## Comprehension is roughly equal — for straightforward material
+
+Studies comparing listening and reading of narrative and general nonfiction tend to find similar comprehension. The brain converts print to sound internally anyway; audio simply skips a step. For a story, a memoir, most popular nonfiction, listening and reading land in about the same place.
+
+## Print pulls ahead when the text is dense or referential
+
+The gap opens with difficult material. Print lets you slow down invisibly, reread a sentence, glance back at a definition, and see structure on the page — headings, paragraphs, where you are in the argument. Audio is linear and paced by the narrator. For technical books, dense philosophy, or anything you need to study rather than absorb, the eye still wins.
+
+## Attention is the real variable
+
+The honest confound in every study is wandering. It is easy to keep eyes moving while the mind leaves; it is even easier while listening during a commute. Retention from audio depends heavily on how much competing attention the moment demands. A focused walk is excellent; heavy traffic is not.
+
+## Use each for what it is good at
+
+Audio is superb for narrative, for re-listening to books you have already read, for turning dead time into reading time, and for writers whose voice matters — a memoir read by its author is its own art form. Print is better for study, reference, and anything you will annotate. Many committed readers do both with the same book, switching format by context. The guilt was always misplaced. It was reading the whole time.`,
+  },
+  {
+    slug: "translation-how-a-book-changes",
+    title: "Lost and Found in Translation: How a Book Changes When It Crosses Languages",
+    excerpt:
+      "The translator is the invisible co-author of every foreign book you love. What they actually do, and why it matters which edition you read.",
+    date: "2026-08-04",
+    minutes: 6,
+    content: `When you read Tolstoy in English, you are not reading Tolstoy. You are reading a collaboration between Tolstoy and a translator whose name is probably in small type, if it appears at all. That fact, once noticed, changes how you choose books forever.
+
+## Translation is interpretation, not substitution
+
+There is rarely a single correct word. Every sentence forces choices: register, rhythm, which of a word's meanings to foreground, how to handle a pun or an idiom that does not exist in the target language. Two skilled translators of the same page will produce visibly different English — both faithful, both partial. The translator decides which faithfulness to keep.
+
+## Why the same classic feels different in different editions
+
+This is why readers argue passionately about translations of Homer, Dostoevsky, or the Tao Te Ching. One version is brisk and modern; another is stately and archaic; a third prioritizes literal accuracy over music. None is the book; each is a lens. Choosing a translation is choosing an experience, and it is worth five minutes of reading sample pages side by side before you commit to a long classic.
+
+## The economics that shape what you can read
+
+Translation is slow, skilled, and underpaid, which is why so much of world literature never reaches English at all, and why some masterpieces circulate for decades in a single flawed version because no one has funded a better one. When you buy a well-made new translation, you are voting for more of the world to become readable.
+
+## How to read a translated book well
+
+Note the translator's name and read their afterword if there is one — it often explains the hardest choices. If a translated classic feels oddly flat, suspect the translation before the author. And when a book moves you in translation, remember to credit the two people who made it: the one who wrote it, and the one who carried it across.`,
+  },
+  {
+    slug: "how-typography-shapes-reading",
+    title: "The Invisible Craft: How Typography Shapes What You Read",
+    excerpt:
+      "Good typography you never notice; bad typography you feel as fatigue. The design decisions that make reading effortless.",
+    date: "2026-08-06",
+    minutes: 6,
+    content: `Typography is the one art you are consuming right now without seeing it. When it is done well, the words seem to enter your mind directly and the page disappears. When it is done badly, you tire quickly and blame yourself, or the book, for a problem that lives in the spacing.
+
+## Line length is the quiet villain
+
+The single most abused variable in digital reading is line length. Lines that stretch the full width of a large screen force the eye to travel too far and lose its place on the return; very short lines break the rhythm of comprehension. The comfortable range is roughly 45 to 75 characters per line — which is why well-designed reading views constrain their text width no matter how wide your monitor is.
+
+## Contrast, size, and the myth of pure black
+
+Text needs enough contrast to be crisp but not so much that it vibrates. Pure black on pure white can feel harsh in a dark room, which is why many readers prefer slightly off-white backgrounds or a warm dark mode at night. Generous size and line spacing reduce fatigue far more than most people expect; cramped text is read more slowly even when it is perfectly legible.
+
+## Serif, sans, and what actually matters
+
+The old debate over serif versus sans-serif fonts is mostly settled into a shrug: on good modern screens, readers do about equally well with either. What matters far more is that the typeface was designed for reading at length, that its spacing is even, and that it renders sharply at the size you are using. A well-set sans beats a poorly set serif every time.
+
+## Why this belongs to readers, not just designers
+
+You cannot redesign the books you read, but you can choose tools that respect these principles, adjust size and spacing to your own eyes, and stop blaming your attention for what is really a design failure. Reading should not be tiring. When it is, look at the page before you look at yourself.`,
+  },
+  {
+    slug: "building-a-reading-life-with-kids",
+    title: "Raising a Reader: Building a Reading Life With Your Kids",
+    excerpt:
+      "You cannot force a love of reading, but you can make it almost inevitable. What the evidence and experience agree on.",
+    date: "2026-08-08",
+    minutes: 6,
+    content: `Every parent wants a child who reads, and most of the common tactics — bribes, quotas, banning screens — backfire in predictable ways. The approaches that actually work are quieter, and they start earlier and last longer than most parents expect.
+
+## Read aloud far longer than feels necessary
+
+Reading aloud is the single best-supported predictor of a child becoming a reader, and its benefits do not stop when a child can read alone. Continuing to read aloud to a nine- or ten-year-old lets you share books above their independent level, builds vocabulary and attention, and — most importantly — keeps reading associated with closeness rather than school. The bedtime story is not a phase to graduate from.
+
+## Let them choose, even badly
+
+The fastest way to kill a young reader is to police what they read. Comics, joke books, the same dinosaur book forty times, series adults find worthless — all of it builds fluency and, crucially, the identity of someone who chooses to read. Taste widens on its own once the habit is secure. The goal at first is volume and pleasure, not quality.
+
+## Make books ordinary and visible
+
+Children read more when books are physically around and reading is simply something the household does. A child who sees adults reading for pleasure, who passes books on the way to everything else, absorbs the message that this is normal. A house with no visible books teaches its own lesson.
+
+## Protect it from becoming a chore
+
+The moment reading becomes purely instrumental — reading logs, forced summaries, reading only to level up — its pleasure leaks away. Keep some reading entirely free of assessment. The child who believes reading belongs to them, not to school, is the one still reading at thirty.`,
+  },
+  {
+    slug: "ethics-of-ai-written-books",
+    title: "The Ethics of AI-Written Books: Disclosure, Originality, and Trust",
+    excerpt:
+      "AI can now draft a book in an afternoon. The honest questions every reader and seller should be asking.",
+    date: "2026-08-10",
+    minutes: 6,
+    content: `The technology to generate a book-length manuscript from a prompt is now cheap and widely available, and the market has filled with the results. Some are useful; many are hollow; a few are quietly deceptive. For readers and for anyone who sells books, the ethical questions are no longer theoretical.
+
+## Disclosure is the whole game
+
+There is nothing inherently wrong with using AI as a tool — writers have always used tools, from spellcheckers to research assistants. The line that matters is honesty. A book that was largely machine-generated but sold as the fruit of an author's expertise is a form of fraud, not because of how it was made but because of what the buyer was told. Clear labeling of how a book was produced is the minimum a reader is owed.
+
+## Originality is more than novelty of words
+
+AI systems produce text that is statistically plausible, which is not the same as true, tested, or accountable. A human expert stakes their reputation on their claims; a generated advice book stakes nothing, and its confident tone can mask errors no one checked. The value of a book has always rested on someone being responsible for it. That does not disappear because the sentences are fluent.
+
+## The flood problem
+
+The deeper harm is volume. When generation is nearly free, catalogs fill with low-effort titles that crowd out careful work and waste readers' time and money. Marketplaces that care about their readers respond by curating — verifying provenance, requiring disclosure, and refusing to treat a book as a commodity to be mass-produced. A catalog is a promise, and quantity is not the promise worth making.
+
+## What a careful reader can do
+
+Favor authors and sellers who are transparent about their process. Be skeptical of suspiciously prolific output and generic, everything-to-everyone titles. And value the thing AI cannot fake: a real person who knows something, is willing to be wrong in public, and wrote it down because it mattered to them.`,
+  },
+  {
+    slug: "economics-of-being-an-author",
+    title: "The Real Economics of Being an Author: Advances, Royalties, and the Long Tail",
+    excerpt:
+      "Most people badly misunderstand how authors get paid. The numbers behind the romantic image.",
+    date: "2026-08-12",
+    minutes: 7,
+    content: `The public image of the author is a person who writes a book, receives a fortune, and retires to write the next. The reality, for all but a tiny minority, is stranger, more precarious, and more interesting — and understanding it changes how you think about the price of a book.
+
+## The advance is a loan against your future sales
+
+A traditional publisher pays an advance — money up front — but it is an advance against royalties, not a gift. You earn no further royalties until the book has sold enough to cover it. Most books never earn out their advance, which is not necessarily a disaster for the author, but it explains why publishers are cautious and why most advances are modest. The headline six-figure deal is the rare exception that makes the news precisely because it is rare.
+
+## Royalties are a slice, and the slice is thin
+
+On a traditionally published print book, an author typically receives around ten percent of the cover price — sometimes less, occasionally more, and higher on e-books. After an agent's commission and taxes, the take-home per copy is small. This is the arithmetic behind a hard truth: a book can be widely admired, even a modest bestseller, and still not pay for the years it took to write.
+
+## Self-publishing flips the ratio, not the difficulty
+
+Self-publishing lets an author keep a far larger share per copy — often the majority on an e-book. But the author now bears every cost and every task: editing, cover design, marketing, and the endless work of being found at all. Higher margin, radically higher effort, and no gatekeeper's advance to live on while you write.
+
+## The long tail is where careers live
+
+The romantic model imagines one big book. The sustainable reality is a backlist: many titles, each earning a little, for a long time. An author's income is usually the sum of a dozen small streams — old books still selling, licensing, foreign rights, audio — not one great flood. This is why authors care so much about books staying available for years, and why a marketplace that keeps backlist titles alive and honestly sold matters more to working writers than any single sale.
+
+## Why this should matter to readers
+
+When you understand that most of the money in a book does not reach the person who wrote it, and that writers survive on longevity rather than jackpots, two things follow: buy the book rather than the pirated file, and value the backlist. The author you love is almost certainly counting on readers who show up years after the launch.`,
+  },
+  {
+    slug: "understanding-copyright-around-the-world",
+    title: "Copyright Around the World: Why 'Public Domain' Depends on Where You Are",
+    excerpt:
+      "A book can be free to copy in one country and protected in another. A reader's guide to the map.",
+    date: "2026-08-14",
+    minutes: 6,
+    content: `One of the most common mistakes in digital reading is assuming copyright is a single global rule. It is not. A book can be firmly in the public domain in one country and fully protected in another on the same day — which means 'is this legal to read for free?' has no answer until you add 'where?'
+
+## The baseline: life plus a term
+
+Most countries anchor copyright to the life of the author plus a number of years. The most common term is life plus seventy years, used across the European Union and many others; a large group uses life plus fifty, the minimum set by the Berne Convention. Some countries have longer terms for specific categories. The practical effect: an author who died in 1960 may be public domain in a life-plus-fifty country years before a life-plus-seventy one.
+
+## The United States is its own puzzle
+
+American copyright does not follow the simple life-plus rule for older works. Because of a tangle of historical laws, the clean line most readers can rely on is that works published before a rolling cutoff — 1929 as of 2026 — are in the public domain in the US, with more entering each January. Newer works follow different rules depending on when and how they were published.
+
+## The 'rule of the shorter term' and why it fails you
+
+Some countries apply the shorter of their own term and the source country's. Many, including the United States, largely do not. This is why a text hosted legally on a public-domain archive in one country can still infringe copyright if you download it in another. The server's legality is not your legality.
+
+## What a careful reader takes from this
+
+Check status against your own country's rule, not a website's claim. Remember that translations, editions, and cover art carry their own separate copyrights regardless of the original text's age. And treat 'public domain' as a statement that always needs a place attached. The map is not optional. It is the whole point.`,
+  },
+  {
+    slug: "why-short-books-are-underrated",
+    title: "In Praise of the Short Book: Why Brevity Is a Feature",
+    excerpt:
+      "The doorstop gets the respect, but the book you can finish in an evening often does more. A case for reading small.",
+    date: "2026-08-16",
+    minutes: 5,
+    content: `Bookstores and bestseller lists reward heft. A thick book signals seriousness, value for money, ambition. Yet many of the books that change readers most are short — finishable in a sitting or two — and the bias toward length costs us more than we notice.
+
+## Length is often padding, not depth
+
+A great many nonfiction books are a strong magazine essay inflated to three hundred pages because the market prices books by size, not by idea. The core insight arrives in chapter one; the rest is repetition, anecdote, and case studies proving what you already accepted. Learning to feel this padding — and to stop reading once a book has given you its idea — is a genuine reading skill.
+
+## Short books get finished, and finished books get remembered
+
+A book you complete leaves a mark; a book abandoned at page eighty leaves guilt. The short book has a structural advantage: it fits inside real life, it delivers the satisfaction of an ending, and it can be reread. Ten finished short books teach more than three unfinished long ones, and they build the momentum that keeps a reader reading.
+
+## Brevity is harder to write, which is why it is worth reading
+
+It takes more skill to say something in a hundred pages than in four hundred. The short book that survives has usually been compressed by a writer who knew exactly what mattered and cut the rest. When you read a genuinely short, genuinely complete book, you are often reading a more disciplined mind than the doorstop beside it.
+
+## How to use this
+
+Keep short books on hand for slumps, for busy weeks, and for topics you want to sample before committing. Do not mistake thickness for value or thinness for slightness. Some of the most important books ever written would fit in a coat pocket. The question was never how long. It was whether it was true, and whether you finished it.`,
+  },
 ];
 
 export function getEditorialPost(slug: string): EditorialPost | undefined {

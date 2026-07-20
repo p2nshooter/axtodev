@@ -1,8 +1,11 @@
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import type { Metadata } from "next";
 import { getPrisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 import { getEditorialPost } from "@/content/editorial-posts";
+import { ArticleReader, type ReaderBlock } from "@/components/reader/article-reader";
+import { pickReaderLocale } from "@/lib/reader-locale";
 
 export const runtime = "edge";
 export const dynamic = "force-dynamic";
@@ -64,23 +67,21 @@ export default async function BlogPostPage({ params }: Props) {
   const post = await resolvePost(slug);
   if (!post) notFound();
 
+  // Structure the article into blocks the reader can highlight word-by-word.
+  const blocks: ReaderBlock[] = post.content
+    .split(/\n\n+/)
+    .map((para) => (para.startsWith("## ") ? { type: "h2", text: para.slice(3) } : { type: "p", text: para }));
+
+  // Auto-pick the reader's language from their IP (Cloudflare cf-ipcountry),
+  // then Accept-Language, then English. English text is still what the server
+  // renders, so search engines and AdSense always see real content.
+  const hdrs = await headers();
+  const initialLocale = pickReaderLocale(hdrs.get("cf-ipcountry"), hdrs.get("accept-language"));
+
   return (
     <article className="container max-w-2xl py-12">
-      <h1 className="font-serif text-3xl font-bold">{post.title}</h1>
-      {post.dateLabel && <p className="mt-1 text-sm text-muted-foreground">{post.dateLabel}</p>}
-      <div className="prose prose-invert prose-sm mt-8 max-w-none text-sm leading-relaxed text-muted-foreground">
-        {post.content.split(/\n\n+/).map((para, i) =>
-          para.startsWith("## ") ? (
-            <h2 key={i} className="mt-8 font-serif text-xl font-semibold text-foreground">
-              {para.slice(3)}
-            </h2>
-          ) : (
-            <p key={i} className="whitespace-pre-line">
-              {para}
-            </p>
-          )
-        )}
-      </div>
+      <ArticleReader title={post.title} blocks={blocks} initialLocale={initialLocale} />
+      {post.dateLabel && <p className="mt-8 text-sm text-muted-foreground">{post.dateLabel}</p>}
       {post.isoDate && (
         <script
           type="application/ld+json"
