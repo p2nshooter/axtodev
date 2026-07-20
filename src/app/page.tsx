@@ -5,7 +5,6 @@ import { BookCard } from "@/components/book/book-card";
 import { TierIcon } from "@/components/site/tier-icon";
 import { Reveal } from "@/components/site/reveal";
 import { PRICE_TIERS, POPULAR_CATEGORIES, SITE } from "@/lib/constants";
-import { formatUsd } from "@/lib/utils";
 import { getFeaturedBooks, getBestSellers } from "@/server/book-service";
 
 export const runtime = "edge";
@@ -66,7 +65,7 @@ function HeroSection() {
             </Link>
           </Button>
           <Button variant="outline" size="lg" className="w-full border-gold-400/40 text-gold-100 hover:bg-white/5 sm:w-auto" asChild>
-            <Link href="#tiers">See pricing tiers</Link>
+            <Link href="/blog">Start reading free</Link>
           </Button>
         </div>
       </div>
@@ -78,8 +77,8 @@ function TrustBar() {
   const items = [
     "100% Original / Public Domain / Properly Licensed",
     "8 Languages Supported",
-    "Secure, Expiring Downloads",
-    "PayPal & Live-Rate Crypto Payments",
+    "Free to Read & Listen",
+    "No Account Needed",
   ];
   return (
     <div className="border-b border-border/60 bg-secondary/30">
@@ -98,8 +97,10 @@ function PriceTierGrid() {
   return (
     <section id="tiers" className="container py-12 sm:py-16">
       <Reveal className="mb-8 text-center sm:mb-10">
-        <h2 className="font-serif text-2xl font-bold sm:text-3xl">E-books for every budget</h2>
-        <p className="mt-2 text-sm text-muted-foreground sm:text-base">Six curated tiers, from a $1 quick-start guide to $150+ mastery collections.</p>
+        <h2 className="font-serif text-2xl font-bold sm:text-3xl">Explore every collection — all free</h2>
+        <p className="mt-2 text-sm text-muted-foreground sm:text-base">
+          Six curated collections, from quick-start guides to deep mastery reads. Every one is free to read and listen to.
+        </p>
       </Reveal>
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
         {PRICE_TIERS.map((tier, i) => (
@@ -115,10 +116,7 @@ function PriceTierGrid() {
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground sm:text-xs">{tier.label}</p>
                 <p className="font-serif text-base font-bold sm:text-lg">{tier.categoryName}</p>
               </div>
-              <p className="text-xs font-medium text-accent sm:text-sm">
-                {formatUsd(tier.minCents)}
-                {tier.maxCents ? ` – ${formatUsd(tier.maxCents)}` : "+"}
-              </p>
+              <p className="text-xs font-medium text-accent sm:text-sm">Free to read &amp; listen</p>
               <p className="hidden text-xs text-muted-foreground sm:block">{tier.badge}</p>
             </Link>
           </Reveal>
@@ -179,7 +177,7 @@ function PopularCategoriesSection() {
     <section className="border-t border-border/60 bg-secondary/20 py-12 sm:py-16">
       <div className="container">
         <Reveal className="mb-6 text-center sm:mb-8">
-          <h2 className="font-serif text-xl font-bold sm:text-2xl">Tambahan Kategori Populer</h2>
+          <h2 className="font-serif text-xl font-bold sm:text-2xl">More Popular Categories</h2>
           <p className="text-xs text-muted-foreground sm:text-sm">More ways to grow — health, faith, family, career, and tech.</p>
         </Reveal>
         <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
@@ -191,9 +189,7 @@ function PopularCategoriesSection() {
               >
                 <div className="flex items-center justify-between">
                   <h3 className="font-serif text-sm font-semibold sm:text-base">{cat.name}</h3>
-                  <span className="shrink-0 text-xs text-accent">
-                    {formatUsd(cat.minCents)}–{formatUsd(cat.maxCents)}
-                  </span>
+                  <span className="shrink-0 text-xs font-medium text-accent">Free</span>
                 </div>
                 <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{cat.sampleTitles.join(" · ")}</p>
               </Link>

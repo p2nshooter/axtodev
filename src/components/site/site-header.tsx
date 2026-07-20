@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, Search, ShoppingCart, User, Moon, Sun, X } from "lucide-react";
+import { Menu, Search, User, Moon, Sun, X } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Logo } from "@/components/site/logo";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useCart } from "@/components/checkout/cart-store";
 import { useSession, signOut } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +29,6 @@ const NAV_LINKS = [
 export function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { theme, setTheme } = useTheme();
-  const cartCount = useCart((s) => s.items.length);
   const { data: session } = useSession();
 
   return (
@@ -67,17 +65,6 @@ export function SiteHeader() {
           >
             <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          </Button>
-
-          <Button variant="ghost" size="icon" asChild aria-label="Cart">
-            <Link href="/cart" className="relative">
-              <ShoppingCart className="h-4 w-4" />
-              {cartCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-accent-foreground">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
           </Button>
 
           {session?.user ? (

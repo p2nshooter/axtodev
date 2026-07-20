@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Star, Clock, BarChart3, Globe, ShieldCheck } from "lucide-react";
+import { Star, Clock, BarChart3, Globe, ShieldCheck, BookOpen, Headphones } from "lucide-react";
 import { BookCover } from "@/components/book/book-cover";
-import { AddToCartButton } from "@/components/checkout/add-to-cart-button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { getBookBySlug } from "@/server/book-service";
-import { formatUsd, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 
 export const runtime = "edge";
 export const dynamic = "force-dynamic";
@@ -58,7 +58,8 @@ export default async function BookDetailPage({ params }: Props) {
     description: t.description,
     author: { "@type": "Organization", name: book.author },
     inLanguage: book.translations.map((tr) => tr.language.code),
-    offers: { "@type": "Offer", price: (book.priceCents / 100).toFixed(2), priceCurrency: "USD", availability: "https://schema.org/InStock" },
+    // Free to read and listen — no purchase.
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD", availability: "https://schema.org/InStock" },
   };
 
   return (
@@ -69,20 +70,27 @@ export default async function BookDetailPage({ params }: Props) {
         <div className="aspect-[3/4] overflow-hidden rounded-lg border border-border shadow-lg">
           <BookCover title={t.title} seed={book.id} coverImageUrl={book.coverImageUrl} />
         </div>
-        <div className="flex flex-col gap-2">
-          <AddToCartButton
-            item={{ bookId: book.id, slug: book.slug, title: t.title, coverImageUrl: book.coverImageUrl, priceCents: book.priceCents }}
-            buyNow
-          />
-          <AddToCartButton
-            item={{ bookId: book.id, slug: book.slug, title: t.title, coverImageUrl: book.coverImageUrl, priceCents: book.priceCents }}
-          />
+        <div className="rounded-lg border border-gold-400/30 bg-gold-400/5 p-4">
+          <p className="flex items-center gap-2 font-serif text-base font-semibold">
+            <BookOpen className="h-4 w-4 text-gold-500" /> Free to read
+            <Headphones className="ml-1 h-4 w-4 text-gold-500" /> Free to listen
+          </p>
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            Open to everyone — read it online and let it be read aloud in your own language, with no account and no cost.
+            Reading is free across AXTO.dev; downloads are turned off so the whole library stays free and always up to date.
+          </p>
+          <Link
+            href="/blog"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-gold-500 px-4 py-2 text-sm font-semibold text-black transition hover:bg-gold-400"
+          >
+            <BookOpen className="h-4 w-4" /> Start reading free
+          </Link>
         </div>
         <div className="rounded-lg border border-border p-4 text-xs text-muted-foreground">
           <p className="flex items-center gap-1.5 font-medium text-foreground">
             <ShieldCheck className="h-3.5 w-3.5 text-accent" /> {LICENSE_LABEL[book.licenseType] ?? book.licenseType}
           </p>
-          <p className="mt-1">Secure, expiring download links. Distributed by AXTO.dev.</p>
+          <p className="mt-1">Published and distributed by AXTO.dev.</p>
         </div>
       </div>
 
@@ -111,8 +119,6 @@ export default async function BookDetailPage({ params }: Props) {
             <Globe className="h-4 w-4" /> {book.translations.length} languages
           </span>
         </div>
-
-        <p className="mt-2 font-serif text-2xl font-bold text-accent">{formatUsd(book.priceCents)}</p>
 
         <Separator className="my-6" />
 
@@ -144,7 +150,7 @@ export default async function BookDetailPage({ params }: Props) {
             ))}
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            You may download up to 2 language versions of this e-book after purchase.
+            Read and listen in any of these languages — the reader follows your language automatically.
           </p>
         </section>
 

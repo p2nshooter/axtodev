@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { Star } from "lucide-react";
+import { Star, Headphones } from "lucide-react";
 import { BookCover } from "@/components/book/book-cover";
 import { Badge } from "@/components/ui/badge";
-import { formatUsd } from "@/lib/utils";
 
 export interface BookCardData {
   id: string;
@@ -43,11 +42,10 @@ export function BookCard({ book }: { book: BookCardData }) {
             {book.avgRating.toFixed(1)}
           </div>
         )}
-        <div className="mt-auto flex items-baseline gap-2 pt-2">
-          <span className="font-semibold text-foreground">{formatUsd(book.priceCents)}</span>
-          {book.compareAtCents && book.compareAtCents > book.priceCents && (
-            <span className="text-xs text-muted-foreground line-through">{formatUsd(book.compareAtCents)}</span>
-          )}
+        {/* Every book is free to read and listen to — no price, no cart
+            (owner: "hapus semua narasi berbayar, semuanya gratis"). */}
+        <div className="mt-auto flex items-center gap-1.5 pt-2 text-xs font-semibold text-accent">
+          <Headphones className="h-3.5 w-3.5" /> Free to read &amp; listen
         </div>
       </div>
     </Link>
