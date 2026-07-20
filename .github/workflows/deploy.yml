@@ -110,6 +110,11 @@ jobs:
           DATABASE_URL: "file:./build.db"
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET || 'ci-build-placeholder-secret-0000000000' }}
           BETTER_AUTH_URL: ${{ vars.NEXT_PUBLIC_APP_URL || 'https://axto.dev' }}
+      # Replace the auto-generated _routes.json (which overflows the 100-rule
+      # cap and breaks ads.txt + static pages) with a compact deliberate one:
+      # only truly dynamic paths hit the Worker, everything else is CDN-served.
+      - name: Write compact _routes.json
+        run: node scripts/write-routes.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: pages-build

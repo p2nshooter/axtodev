@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { getPrisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 import { EDITORIAL_POSTS } from "@/content/editorial-posts";
 
-export const runtime = "edge";
-export const dynamic = "force-dynamic";
+// Static: the blog renders entirely from the editorial posts shipped with the
+// codebase, prerendered at build time. (The old version also queried the
+// database on every request, which contributed to Error 1102 — admin-authored
+// DB posts are paused until the catalog moves fully into code.)
 
 export const metadata = {
   title: "Blog",
@@ -21,34 +22,13 @@ interface ListItem {
 }
 
 export default async function BlogIndexPage() {
-  // Admin-authored posts (database) merged with the editorial posts that
-  // ship with the codebase — the blog is never empty and always carries
-  // substantial original content.
-  let dbItems: ListItem[] = [];
-  try {
-    const prisma = await getPrisma();
-    const posts = await prisma.blogPost.findMany({ where: { published: true }, orderBy: { publishedAt: "desc" } });
-    dbItems = posts.map((post) => ({
-      slug: post.slug,
-      title: post.title,
-      excerpt: post.excerpt,
-      dateLabel: post.publishedAt ? formatDate(post.publishedAt) : null,
-      sortKey: post.publishedAt ? new Date(post.publishedAt).toISOString() : "0000",
-    }));
-  } catch {
-    /* database unavailable — editorial posts still render */
-  }
-
-  const dbSlugs = new Set(dbItems.map((i) => i.slug));
-  const editorialItems: ListItem[] = EDITORIAL_POSTS.filter((p) => !dbSlugs.has(p.slug)).map((p) => ({
+  const items: ListItem[] = EDITORIAL_POSTS.map((p) => ({
     slug: p.slug,
     title: p.title,
     excerpt: p.excerpt,
     dateLabel: formatDate(new Date(p.date)),
     sortKey: p.date,
-  }));
-
-  const items = [...dbItems, ...editorialItems].sort((a, b) => (a.sortKey < b.sortKey ? 1 : -1));
+  })).sort((a, b) => (a.sortKey < b.sortKey ? 1 : -1));
 
   return (
     <div className="container max-w-3xl py-12">

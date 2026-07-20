@@ -1,14 +1,18 @@
 import { notFound } from "next/navigation";
-import { headers } from "next/headers";
 import type { Metadata } from "next";
-import { getPrisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
-import { getEditorialPost } from "@/content/editorial-posts";
+import { EDITORIAL_POSTS, getEditorialPost } from "@/content/editorial-posts";
 import { ArticleReader, type ReaderBlock } from "@/components/reader/article-reader";
-import { pickReaderLocale } from "@/lib/reader-locale";
 
-export const runtime = "edge";
-export const dynamic = "force-dynamic";
+// Fully static: every article is prerendered at build time and served from
+// the CDN (no per-request compute — the Error 1102 fix). The reader detects
+// the visitor's language client-side, so auto-language still works.
+
+export function generateStaticParams() {
+  return EDITORIAL_POSTS.map((p) => ({ slug: p.slug }));
+}
+
+export const dynamicParams = false;
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -23,23 +27,6 @@ interface RenderPost {
 }
 
 async function resolvePost(slug: string): Promise<RenderPost | null> {
-  // Database post wins on slug collision; editorial posts (shipped with the
-  // codebase) fill the rest — and keep the blog alive even if D1 is down.
-  try {
-    const prisma = await getPrisma();
-    const post = await prisma.blogPost.findUnique({ where: { slug } });
-    if (post && post.published) {
-      return {
-        title: post.title,
-        dateLabel: post.publishedAt ? formatDate(post.publishedAt) : null,
-        isoDate: post.publishedAt ? new Date(post.publishedAt).toISOString() : null,
-        excerpt: post.excerpt,
-        content: post.content,
-      };
-    }
-  } catch {
-    /* fall through to editorial */
-  }
   const editorial = getEditorialPost(slug);
   if (!editorial) return null;
   return {
@@ -72,15 +59,9 @@ export default async function BlogPostPage({ params }: Props) {
     .split(/\n\n+/)
     .map((para) => (para.startsWith("## ") ? { type: "h2", text: para.slice(3) } : { type: "p", text: para }));
 
-  // Auto-pick the reader's language from their IP (Cloudflare cf-ipcountry),
-  // then Accept-Language, then English. English text is still what the server
-  // renders, so search engines and AdSense always see real content.
-  const hdrs = await headers();
-  const initialLocale = pickReaderLocale(hdrs.get("cf-ipcountry"), hdrs.get("accept-language"));
-
   return (
     <article className="container max-w-2xl py-12">
-      <ArticleReader title={post.title} blocks={blocks} initialLocale={initialLocale} />
+      <ArticleReader title={post.title} blocks={blocks} />
       {post.dateLabel && <p className="mt-8 text-sm text-muted-foreground">{post.dateLabel}</p>}
       {post.isoDate && (
         <script

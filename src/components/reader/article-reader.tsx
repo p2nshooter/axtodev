@@ -30,13 +30,16 @@ export function ArticleReader({
 }: {
   title: string;
   blocks: ReaderBlock[];
-  initialLocale: ReaderLocale;
+  // When omitted (fully static pages, prerendered at build time with no
+  // request headers available), the reader detects the visitor's language in
+  // the browser instead — same auto-language behaviour, zero server compute.
+  initialLocale?: ReaderLocale;
 }) {
   // Item 0 is the title; items 1..n are the body blocks. Reading and
   // highlighting treat them as one linear sequence.
   const englishItems = useMemo(() => [title, ...blocks.map((b) => b.text)], [title, blocks]);
 
-  const [locale, setLocale] = useState<ReaderLocale>(initialLocale);
+  const [locale, setLocale] = useState<ReaderLocale>(initialLocale ?? "en");
   const [items, setItems] = useState<string[]>(englishItems);
   const [translating, setTranslating] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -176,12 +179,20 @@ export function ArticleReader({
     [englishItems, stop]
   );
 
-  // On first mount, if the visitor's IP language isn't English, translate.
+  // On first mount, pick the visitor's language automatically. A server-passed
+  // locale (from cf-ipcountry) wins; on static pages, fall back to the
+  // browser's own language — either way, non-English visitors get the article
+  // and its voice in their language without touching anything.
   const didInit = useRef(false);
   useEffect(() => {
     if (didInit.current) return;
     didInit.current = true;
-    if (initialLocale !== "en") void applyLocale(initialLocale);
+    let target = initialLocale;
+    if (!target && typeof navigator !== "undefined") {
+      const nav = (navigator.language || "").split("-")[0];
+      target = READER_LOCALES.includes(nav as ReaderLocale) ? (nav as ReaderLocale) : "en";
+    }
+    if (target && target !== "en") void applyLocale(target);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -4,12 +4,12 @@ import { SITE } from "@/lib/constants";
 
 const COLUMNS: Array<{ title: string; links: Array<{ href: string; label: string }> }> = [
   {
-    title: "Marketplace",
+    title: "Free Library",
     links: [
-      { href: "/", label: "Browse E-books" },
-      { href: "/category/belajar-dasar", label: "Belajar Dasar" },
-      { href: "/category/bisnis-keuangan", label: "Bisnis & Keuangan" },
-      { href: "/category/expert-mastery", label: "Expert & Mastery" },
+      { href: "/books", label: "The Library" },
+      { href: "/category/belajar-dasar", label: "Foundations" },
+      { href: "/category/bisnis-keuangan", label: "Money & Work" },
+      { href: "/category/expert-mastery", label: "Strategy & Mastery" },
     ],
   },
   {
