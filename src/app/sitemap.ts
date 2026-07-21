@@ -1,33 +1,13 @@
-import type { MetadataRoute } from "next";
-import { getAppUrl } from "@/lib/site-url";
-import { EDITORIAL_POSTS } from "@/content/editorial-posts";
-import { LIBRARY, LIBRARY_CATEGORIES } from "@/content/library";
-
-// Static sitemap generated at build time from the code catalog — no database.
+import type { MetadataRoute } from 'next';
+import { ARTICLES, CATEGORIES } from '@/content/articles';
+import { SITE } from '@/lib/site';
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = getAppUrl();
-
+  const b = SITE.url;
   return [
-    { url: baseUrl, changeFrequency: "daily", priority: 1 },
-    { url: `${baseUrl}/books`, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${baseUrl}/search`, changeFrequency: "weekly", priority: 0.6 },
-    { url: `${baseUrl}/blog`, changeFrequency: "daily", priority: 0.7 },
-    { url: `${baseUrl}/faq`, changeFrequency: "monthly", priority: 0.3 },
-    ...LIBRARY_CATEGORIES.map((c) => ({
-      url: `${baseUrl}/category/${c.slug}`,
-      changeFrequency: "weekly" as const,
-      priority: 0.7,
-    })),
-    ...LIBRARY.map((b) => ({
-      url: `${baseUrl}/books/${b.slug}`,
-      changeFrequency: "monthly" as const,
-      priority: 0.8,
-    })),
-    ...EDITORIAL_POSTS.map((e) => ({
-      url: `${baseUrl}/blog/${e.slug}`,
-      lastModified: new Date(e.date),
-      changeFrequency: "monthly" as const,
-      priority: 0.5,
-    })),
+    { url: b, changeFrequency: 'daily', priority: 1 },
+    ...CATEGORIES.map((c) => ({ url: `${b}/category/${c.slug}`, changeFrequency: 'weekly' as const, priority: 0.7 })),
+    ...ARTICLES.map((a) => ({ url: `${b}/articles/${a.slug}`, lastModified: new Date(a.date), changeFrequency: 'monthly' as const, priority: 0.8 })),
+    { url: `${b}/about`, priority: 0.3 }, { url: `${b}/contact`, priority: 0.3 },
+    { url: `${b}/privacy`, priority: 0.2 }, { url: `${b}/terms`, priority: 0.2 }
   ];
 }
