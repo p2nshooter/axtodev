@@ -1,15 +1,27 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from 'react';
+import { SITE } from '@/lib/site';
 
 /**
- * Network-controlled ad slot for axto.dev. Reads the SAME central config as the
- * whole network from api.ulyah.com (edited only in the ulyah.com admin). Off by
- * default; preview box when on without an id; real AdSense unit once an id is
- * set. Never in the admin, never sticky/interstitial.
+ * Network-controlled ad slot — the ONE ad primitive, shared by every article
+ * site. It reads the central config from the ulyah.com admin
+ * (api.ulyah.com/content/ad-config?site=<id>) so the owner controls every
+ * site's ads from a single panel:
+ *
+ *   enabled   — master show/hide for this site (default OFF everywhere).
+ *   approved  — the admin's per-site "this one is AdSense-approved" checkbox.
+ *   clientId  — the real ca-pub-… id (per site; falls back to the shared one).
+ *   slots     — real ad-unit ids per placement (in_article_1/2, sidebar, footer).
+ *
+ * States: hidden (enabled off) → dashed PREVIEW box (enabled, but not approved
+ * or no unit id yet, so the owner can preview placement/spacing) → REAL ad
+ * (enabled + approved + unit id present). Ticking "approved" and saving a real
+ * id in the admin flips every slot on this site to live at once — no redeploy.
  */
 interface AdView {
   enabled: boolean;
+  approved: boolean;
   clientId: string;
   slots: Record<string, string>;
 }
@@ -17,19 +29,29 @@ interface AdView {
 let cached: Promise<AdView> | null = null;
 function fetchAdView(): Promise<AdView> {
   if (cached) return cached;
-  cached = fetch("https://api.ulyah.com/content/ad-config?site=axto-dev")
+  cached = fetch(`${SITE.adConfigEndpoint}?site=${SITE.id}`)
     .then((r) => r.json() as Promise<Partial<AdView>>)
-    .then((v) => ({ enabled: !!v.enabled, clientId: v.clientId ?? "", slots: v.slots ?? {} }))
-    .catch(() => ({ enabled: false, clientId: "", slots: {} }));
+    .then((v) => ({
+      enabled: !!v.enabled,
+      approved: !!v.approved,
+      clientId: v.clientId || SITE.adClient,
+      slots: v.slots ?? {},
+    }))
+    .catch(() => ({ enabled: false, approved: false, clientId: SITE.adClient, slots: {} }));
   return cached;
 }
 
-export function AdSlot({ placement = "footer", className = "" }: { placement?: string; className?: string }) {
+declare global {
+  interface Window {
+    adsbygoogle?: unknown[];
+  }
+}
+
+export function AdSlot({ placement = 'in_article_1', className = '' }: { placement?: string; className?: string }) {
   const [view, setView] = useState<AdView | null>(null);
   const pushed = useRef(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && window.location.pathname.includes("/admin")) return;
     let alive = true;
     fetchAdView().then((v) => alive && setView(v));
     return () => {
@@ -37,37 +59,41 @@ export function AdSlot({ placement = "footer", className = "" }: { placement?: s
     };
   }, []);
 
-  const slotId = view?.slots?.[placement] || "";
+  const slotId = view?.slots?.[placement] || '';
+  const live = !!view?.enabled && !!view?.approved && !!slotId;
+
   useEffect(() => {
-    if (!view?.enabled || !slotId || pushed.current) return;
+    if (!live || pushed.current) return;
     pushed.current = true;
     try {
-      ((window as unknown as { adsbygoogle?: unknown[] }).adsbygoogle ??= []).push({});
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch {
-      /* blocked / not ready */
+      /* blocked — the empty <ins> collapses quietly */
     }
-  }, [view?.enabled, slotId]);
+  }, [live]);
 
-  if (!view || !view.enabled) return null;
+  if (!view?.enabled) return null;
 
-  if (slotId && view.clientId) {
+  if (!live) {
     return (
-      <div className={`my-8 flex justify-center ${className}`}>
-        <ins
-          className="adsbygoogle"
-          style={{ display: "block", width: "100%", minHeight: 90 }}
-          data-ad-client={view.clientId}
-          data-ad-slot={slotId}
-          data-ad-format="auto"
-          data-full-width-responsive="true"
-        />
+      <div
+        className={`my-6 rounded-lg border-2 border-dashed border-[color:var(--accent-soft)] bg-[color:var(--accent-soft)]/10 py-6 text-center text-xs text-[color:var(--accent)] ${className}`}
+      >
+        Advertisement · {placement}
       </div>
     );
   }
 
   return (
-    <div className={`my-8 flex min-h-[90px] items-center justify-center rounded-xl border border-dashed border-gold-400/40 bg-gold-400/5 text-xs text-muted-foreground ${className}`}>
-      ▭ Ad space · position preview
+    <div className={`my-6 ${className}`}>
+      <ins
+        className="adsbygoogle"
+        style={{ display: 'block' }}
+        data-ad-client={view.clientId}
+        data-ad-slot={slotId}
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+      />
     </div>
   );
 }

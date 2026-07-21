@@ -1,15 +1,5 @@
-import type { MetadataRoute } from "next";
-import { getAppUrl } from "@/lib/site-url";
-
+import type { MetadataRoute } from 'next';
+import { SITE } from '@/lib/site';
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = getAppUrl();
-  return {
-    rules: [
-      { userAgent: "*", allow: "/", disallow: ["/admin", "/api", "/account", "/library", "/orders", "/checkout", "/cart"] },
-      { userAgent: "Googlebot", allow: "/" },
-      { userAgent: "AdsBot-Google", allow: "/" },
-      { userAgent: "Mediapartners-Google", allow: "/" },
-    ],
-    sitemap: `${baseUrl}/sitemap.xml`,
-  };
+  return { rules: { userAgent: '*', allow: '/' }, sitemap: `${SITE.url}/sitemap.xml` };
 }

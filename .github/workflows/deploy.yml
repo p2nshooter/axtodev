@@ -1,211 +1,63 @@
-name: Deploy AXTO.dev
-
+name: Deploy to Cloudflare
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch: {}
-
-env:
-  NODE_VERSION: "20"
-
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
 jobs:
-  lint-and-typecheck:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "pnpm"
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma generate
-      - run: pnpm run lint
-      - run: pnpm run type-check
-
-  # Idempotently ensures the D1 database and KV namespace this app needs
-  # exist in the Cloudflare account behind CLOUDFLARE_API_TOKEN /
-  # CLOUDFLARE_ACCOUNT_ID, and resolves their real IDs so later jobs can
-  # patch the placeholders in wrangler.toml without any manual setup.
-  # R2 buckets don't need this (wrangler.toml only needs their name).
-  provision-cloudflare:
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    outputs:
-      d1_id: ${{ steps.resolve.outputs.d1_id }}
-      kv_id: ${{ steps.resolve.outputs.kv_id }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-      - name: Ensure D1 database, R2 buckets, and KV namespace exist
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          npx wrangler d1 create axto-dev-db || true
-          npx wrangler r2 bucket create axto-dev-ebooks || true
-          npx wrangler r2 bucket create axto-dev-assets || true
-          # wrangler 4.x's `pages deploy` no longer creates the Pages
-          # project on first deploy in non-interactive CI — it must exist
-          # beforehand, or deploy fails with "Project not found" (code
-          # 8000007).
-          npx wrangler pages project create axto-dev --production-branch=main || true
-          # Create the CACHE KV namespace only if none matching already exists.
-          # wrangler titles it "<config-name>-CACHE" (e.g. axto-dev-CACHE),
-          # so match by the "CACHE" suffix rather than an exact string.
-          npx wrangler kv namespace list | node -e "
-            const list = JSON.parse(require('fs').readFileSync(0, 'utf8'));
-            process.exit(list.some(n => /CACHE\$/.test(n.title)) ? 0 : 1);
-          " || npx wrangler kv namespace create CACHE
-      - name: Resolve resource IDs
-        id: resolve
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          D1_ID=$(npx wrangler d1 list --json | node -e "
-            const dbs = JSON.parse(require('fs').readFileSync(0, 'utf8'));
-            const db = dbs.find(d => d.name === 'axto-dev-db');
-            if (!db) { console.error('axto-dev-db not found after create'); process.exit(1); }
-            console.log(db.uuid);
-          ")
-          KV_ID=$(npx wrangler kv namespace list | node -e "
-            const list = JSON.parse(require('fs').readFileSync(0, 'utf8'));
-            const ns = list.find(n => /CACHE\$/.test(n.title));
-            if (!ns) { console.error('CACHE KV namespace not found after create'); process.exit(1); }
-            console.log(ns.id);
-          ")
-          echo "d1_id=$D1_ID" >> "$GITHUB_OUTPUT"
-          echo "kv_id=$KV_ID" >> "$GITHUB_OUTPUT"
-
-  # Runs on every push and PR (plain `next build` doesn't touch Cloudflare
-  # bindings — those only matter to `wrangler d1 migrations apply` and
-  # `wrangler pages deploy` below, which patch wrangler.toml themselves).
-  build:
-    needs: lint-and-typecheck
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "pnpm"
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec prisma generate
-      - name: Build Next.js app for Cloudflare Pages
-        run: pnpm run cf:build
-        env:
-          # Fall back to the production domain when the repo variable isn't
-          # set, so the build never receives an empty URL.
-          NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL || 'https://axto.dev' }}
-          DATABASE_URL: "file:./build.db"
-          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET || 'ci-build-placeholder-secret-0000000000' }}
-          BETTER_AUTH_URL: ${{ vars.NEXT_PUBLIC_APP_URL || 'https://axto.dev' }}
-      # Replace the auto-generated _routes.json (which overflows the 100-rule
-      # cap and breaks ads.txt + static pages) with a compact deliberate one:
-      # only truly dynamic paths hit the Worker, everything else is CDN-served.
-      - name: Write compact _routes.json
-        run: node scripts/write-routes.mjs
-      - uses: actions/upload-artifact@v4
-        with:
-          name: pages-build
-          path: .vercel/output/static
-          retention-days: 1
-
-  migrate-database:
-    needs: [provision-cloudflare, build]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "pnpm"
-      - name: Patch wrangler.toml with real Cloudflare resource IDs
-        run: |
-          sed -i "s/REPLACE_WITH_CLOUDFLARE_D1_DATABASE_ID/${{ needs.provision-cloudflare.outputs.d1_id }}/" wrangler.toml
-          sed -i "s/REPLACE_WITH_CLOUDFLARE_KV_NAMESPACE_ID/${{ needs.provision-cloudflare.outputs.kv_id }}/" wrangler.toml
-      - run: pnpm install --frozen-lockfile
-      - name: Materialize wrangler-compatible migration files
-        # `wrangler d1 migrations apply` expects flat "NNNN_name.sql" files
-        # directly under migrations_dir; Prisma instead writes one
-        # "<timestamp>_<name>/migration.sql" folder per migration. Flatten
-        # each Prisma migration into wrangler.toml's migrations_dir,
-        # preserving chronological order via the timestamp prefix, so
-        # wrangler's own migration ledger (d1_migrations table) can track
-        # what's already been applied to the remote database.
-        run: |
-          mkdir -p d1-migrations
-          for dir in prisma/migrations/*/; do
-            name=$(basename "$dir")
-            [ "$name" = "migration_lock.toml" ] && continue
-            cp "${dir}migration.sql" "d1-migrations/${name}.sql"
-          done
-          ls -la d1-migrations
-      - name: Apply D1 migrations
-        run: pnpm exec wrangler d1 migrations apply axto-dev-db --remote
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
   deploy:
-    needs: [provision-cloudflare, migrate-database]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: pages-build
-          path: .vercel/output/static
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-      - name: Patch wrangler.toml with real Cloudflare resource IDs
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm run cf:build
+      - name: Check Cloudflare secrets
+        id: cf
         run: |
-          sed -i "s/REPLACE_WITH_CLOUDFLARE_D1_DATABASE_ID/${{ needs.provision-cloudflare.outputs.d1_id }}/" wrangler.toml
-          sed -i "s/REPLACE_WITH_CLOUDFLARE_KV_NAMESPACE_ID/${{ needs.provision-cloudflare.outputs.kv_id }}/" wrangler.toml
-      - name: Deploy to Cloudflare Pages
-        # WRANGLER_LOG=debug: the previous failure ("Unknown internal error
-        # occurred") is Cloudflare's generic catch-all — debug logging
-        # surfaces the actual HTTP status/response body so we can tell
-        # a script-size-limit rejection apart from a real transient fault.
-        run: npx wrangler pages deploy .vercel/output/static --project-name=axto-dev --branch=main --commit-dirty=true
+          if [ -n "${{ secrets.CLOUDFLARE_API_TOKEN }}" ] && [ -n "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::CLOUDFLARE secrets not set — build OK but deploy SKIPPED. Add CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID and re-run."
+          fi
+      - name: Ensure workers.dev subdomain
+        if: steps.cf.outputs.ok == 'true'
+        run: |
+          set -e
+          current=$(curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/subdomain")
+          existing=$(node -e "try{const d=JSON.parse(process.argv[1]);process.stdout.write(d.result&&d.result.subdomain?d.result.subdomain:'')}catch(e){}" "$current")
+          if [ -z "$existing" ]; then
+            curl -s -X PUT -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" -d '{"subdomain":"axto-dev"}' "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/subdomain"
+          fi
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          WRANGLER_LOG: debug
-      - name: Attach axto.dev custom domain to the Pages project
-        # wrangler has no CLI verb for Pages custom domains — this is only
-        # exposed via the REST API. Idempotent: a 409-ish "already exists"
-        # response is treated as success. Since axto.dev's nameservers
-        # already point at this Cloudflare account, attaching the domain
-        # here automatically provisions the DNS record needed for it to
-        # resolve to this deployment — no manual DNS entry required.
+      - name: Deploy to Cloudflare Workers
+        if: steps.cf.outputs.ok == 'true'
+        run: npx opennextjs-cloudflare deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Attach custom domain + DNS (best effort)
+        if: steps.cf.outputs.ok == 'true'
+        continue-on-error: true
         run: |
-          response=$(curl -sS -o /tmp/domain-response.json -w "%{http_code}" \
-            -X POST "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/axto-dev/domains" \
-            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
-            -H "Content-Type: application/json" \
-            --data '{"name":"axto.dev"}')
-          cat /tmp/domain-response.json
-          echo "HTTP status: $response"
-          if [ "$response" = "200" ] || grep -q "already exists\|already associated" /tmp/domain-response.json; then
-            echo "Domain attached (or already was)."
-          else
-            echo "::warning::Could not attach axto.dev automatically — add it manually in the Cloudflare Pages dashboard (project axto-dev → Custom domains)."
-          fi
+          set -e
+          zone=$(curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/zones?name=axto.dev" | node -e "try{const d=JSON.parse(require('fs').readFileSync(0,'utf8'));process.stdout.write((d.result&&d.result[0]&&d.result[0].id)||'')}catch(e){}")
+          if [ -z "$zone" ]; then echo "Zone axto.dev not visible — attach manually once."; exit 0; fi
+          for host in axto.dev www.axto.dev; do
+            for type in A AAAA CNAME; do
+              ids=$(curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/zones/$zone/dns_records?type=$type&name=$host" | node -e "try{const d=JSON.parse(require('fs').readFileSync(0,'utf8'));(d.result||[]).forEach(r=>console.log(r.id))}catch(e){}")
+              for id in $ids; do curl -s -X DELETE -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/zones/$zone/dns_records/$id" > /dev/null; done
+            done
+            curl -s -X PUT -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" -d "{\"hostname\":\"$host\",\"zone_id\":\"$zone\",\"service\":\"axto-dev\",\"environment\":\"production\"}" "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/domains"
+          done
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
