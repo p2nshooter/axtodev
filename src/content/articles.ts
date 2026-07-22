@@ -1,6 +1,7 @@
 import type { Article, Category } from './types';
 import { ARTICLES_BATCH2 } from './articles-batch2';
 import { ARTICLES_BATCH3 } from './articles-batch3';
+import { ARTICLES_BATCH4 } from './articles-batch4';
 
 // Developer-focused, original content — deliberately distinct from the sibling
 // tech site so no article overlaps (duplicate content hurts everyone's AdSense).
@@ -265,3 +266,4 @@ export function getArticlesByCategory(cat: string): Article[] {
 // Batch 2 merges into the same library; all lists sort by date.
 ARTICLES.push(...ARTICLES_BATCH2);
 ARTICLES.push(...ARTICLES_BATCH3);
+ARTICLES.push(...ARTICLES_BATCH4);
