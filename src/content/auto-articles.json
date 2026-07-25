@@ -993,5 +993,54 @@
         ]
       }
     ]
+  },
+  {
+    "slug": "embracing-observability",
+    "category": "web",
+    "title": "The Pragmatics of Observability: Building a Culture of Monitoring and Feedback",
+    "excerpt": "Learn how to build a culture of monitoring and feedback in your organization with observability best practices.",
+    "date": "2026-07-25",
+    "minutes": 7,
+    "author": "The AXTO.dev Desk",
+    "sections": [
+      {
+        "h": "",
+        "p": [
+          "In today's complex software systems, understanding what's happening under the hood is crucial for delivering high-quality products and services. However, building a culture of monitoring and feedback can be a daunting task, especially for organizations with limited resources. Observability, a concept that originated in the field of control theory, has become a crucial aspect of modern software development. In this article, we'll delve into the world of observability, exploring its best practices and providing actionable tips for building a culture of monitoring and feedback in your organization."
+        ]
+      },
+      {
+        "h": "What is Observability?",
+        "p": [
+          "Observability is the ability to understand the internal state of a system by analyzing its external outputs. In the context of software development, observability refers to the ability to monitor and understand the behavior of complex systems, including their performance, errors, and other key metrics. By collecting and analyzing data from various sources, developers can gain insights into the system's behavior, identify bottlenecks, and make data-driven decisions to improve the overall quality of the system.",
+          "There are three main components of observability: monitoring, logging, and tracing. Monitoring involves collecting and analyzing data from various sources, such as application performance metrics, error rates, and user behavior. Logging involves collecting and storing log data from various sources, such as application logs, network logs, and database logs. Tracing involves analyzing the flow of requests through a system, including the time it takes for each request to complete and any errors that may occur along the way."
+        ]
+      },
+      {
+        "h": "Best Practices for Building a Culture of Observability",
+        "p": [
+          "Building a culture of observability requires a combination of technical and organizational skills. Here are some best practices to get you started:",
+          "- **Instrument your code**: Use libraries and frameworks to instrument your code and collect data on key metrics, such as application performance, error rates, and user behavior.",
+          "- **Use a centralized logging solution**: Collect and store log data from various sources in a centralized logging solution, such as ELK or Splunk.",
+          "- **Implement tracing**: Use libraries and frameworks to implement tracing and analyze the flow of requests through your system.",
+          "- **Make data-driven decisions**: Use data from monitoring, logging, and tracing to make informed decisions about the system's behavior and performance."
+        ]
+      },
+      {
+        "h": "Overcoming Common Challenges",
+        "p": [
+          "Building a culture of observability can be challenging, especially for organizations with limited resources. Here are some common challenges and solutions:",
+          "- **Lack of resources**: Start small and focus on key metrics and logs. Use open-source tools and libraries to reduce costs.",
+          "- **Complexity**: Break down the system into smaller components and focus on one component at a time.",
+          "- **Resistance to change**: Communicate the benefits of observability to stakeholders and involve them in the process."
+        ]
+      },
+      {
+        "h": "Conclusion",
+        "p": [
+          "Building a culture of monitoring and feedback is crucial for delivering high-quality products and services. By understanding the concept of observability and implementing best practices, you can improve the overall quality of your system and make data-driven decisions. Remember to start small, focus on key metrics and logs, and involve stakeholders in the process."
+        ]
+      }
+    ]
   }
 ]
