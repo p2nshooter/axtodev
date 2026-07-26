@@ -1179,5 +1179,28 @@
         ]
       }
     ]
+  },
+  {
+    "slug": "syscall-abstraction",
+    "category": "tools",
+    "title": "The Power of Syscall Abstraction: Simplifying Low-Level System Interactions",
+    "excerpt": "Learn how syscall abstraction enables developers to interact with low-level system calls in a more efficient and secure way.",
+    "date": "2026-07-26",
+    "minutes": 7,
+    "author": "The AXTO.dev Desk",
+    "sections": [
+      {
+        "h": "",
+        "p": [
+          "Syscalls are the fundamental building blocks of operating system interactions, allowing developers to access and manipulate system resources such as files, processes, and network connections. However, working directly with syscalls can be error-prone and lead to security vulnerabilities due to the complexity and variability of system calls across different operating systems."
+        ]
+      },
+      {
+        "h": "What is Syscall Abstraction?",
+        "p": [
+          "Syscall abstraction is a programming technique that provides a higher-level interface to system calls, hiding the underlying complexity and variability of syscalls. This abstraction layer allows developers to write system-independent code that can run on multiple operating systems without modification."
+        ]
+      }
+    ]
   }
 ]
