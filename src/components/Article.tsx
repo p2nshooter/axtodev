@@ -4,6 +4,7 @@ import { BannerAd, NativeAd, SponsoredCard } from '@/components/Ads';
 import { SITE } from '@/lib/site';
 import { CATEGORIES, ARTICLES } from '@/content/articles';
 import type { Article } from '@/content/types';
+import { readingMinutes } from '@/lib/reading-time';
 
 export function ArticleCard({ article }: { article: Article }) {
   const cat = CATEGORIES.find((c) => c.slug === article.category);
@@ -12,7 +13,7 @@ export function ArticleCard({ article }: { article: Article }) {
       <p className="text-[11px] font-semibold uppercase tracking-wider text-gold-600">{cat?.name}</p>
       <h3 className="mt-1.5 font-serif text-lg font-bold leading-snug">{article.title}</h3>
       <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-ink-800/70">{article.excerpt}</p>
-      <p className="mt-3 text-xs text-gold-600">{article.minutes} min read</p>
+      <p className="mt-3 text-xs text-gold-600">{readingMinutes(article)} min read</p>
     </Link>
   );
 }
@@ -29,7 +30,7 @@ export function ArticleBody({ article }: { article: Article }) {
       <h1 className="font-serif text-3xl font-black leading-tight sm:text-4xl">{article.title}</h1>
       <p className="mt-3 text-sm text-gold-600">
         {new Date(article.date).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })} ·{' '}
-        {article.minutes} min read · {article.author}
+        {readingMinutes(article)} min read · {article.author}
       </p>
       <div className="ornament-rule mt-5" />
 
