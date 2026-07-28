@@ -4,6 +4,7 @@ import { ARTICLES_BATCH2 } from './articles-batch2';
 import { ARTICLES_BATCH3 } from './articles-batch3';
 import { ARTICLES_BATCH4 } from './articles-batch4';
 import { ARTICLES_BATCH5 } from './articles-batch5';
+import { ARTICLES_BATCH6 } from './articles-batch6';
 
 // Developer-focused, original content — deliberately distinct from the sibling
 // tech site so no article overlaps (duplicate content hurts everyone's AdSense).
@@ -269,8 +270,10 @@ export function getArticlesByCategory(cat: string): Article[] {
 ARTICLES.push(...ARTICLES_BATCH2);
 ARTICLES.push(...ARTICLES_BATCH3);
 ARTICLES.push(...ARTICLES_BATCH4);
-// Batch 5 is written to a longer brief — see the note at the top of that file.
+// Batches 5 and 6 are written to a longer brief — see the note at the top of
+// either file.
 ARTICLES.push(...ARTICLES_BATCH5);
+ARTICLES.push(...ARTICLES_BATCH6);
 
 // Autonomous content bot output (committed by the ulyah.com Orchestra).
 ARTICLES.push(...(AUTO_ARTICLES as unknown as Article[]));
