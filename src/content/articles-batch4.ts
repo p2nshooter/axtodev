@@ -344,7 +344,7 @@ export const ARTICLES_BATCH4: Article[] = [
     ],
   },
   {
-    slug: 'understanding-git-branches',
+    slug: 'git-branches-cheap-pointers-not-copies',
     category: 'tools',
     title: 'Git Branches, Finally Understood: Cheap Pointers, Not Copies',
     excerpt:

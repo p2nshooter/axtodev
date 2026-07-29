@@ -6,6 +6,7 @@ import { ARTICLES_BATCH4 } from './articles-batch4';
 import { ARTICLES_BATCH5 } from './articles-batch5';
 import { ARTICLES_BATCH6 } from './articles-batch6';
 import { buildMerged } from './merges';
+import { applyExpansions } from './expansions';
 
 // Developer-focused, original content — deliberately distinct from the sibling
 // tech site so no article overlaps (duplicate content hurts everyone's AdSense).
@@ -279,17 +280,18 @@ ARTICLES.push(...ARTICLES_BATCH6);
 // Autonomous content bot output (committed by the ulyah.com Orchestra).
 ARTICLES.push(...(AUTO_ARTICLES as unknown as Article[]));
 
-// CONSOLIDATION. Everything above is the raw library, including 91 articles
-// that covered 23 subjects between them — eight on system calls, seven on
-// observability, three on microservices security. buildMerged() folds each
-// group into one piece, carrying the prose across rather than regenerating it,
-// and reports which slugs it absorbed so they stop being published separately.
-// The absorbed URLs are 308-redirected in next.config.js; see merges.ts for the
-// grouping and the reasoning.
-//
-// This runs last, and mutates ARTICLES in place, because ARTICLES is what every
-// page imports — the home page, the category pages, the sitemap and the feed all
-// read it directly, and none of them should have to know consolidation exists.
+// EXPANSION. Owner: "artikel d tambah bukan d gabung" — add to the articles,
+// don't combine them. applyExpansions() appends new, hand-written sections to
+// specific existing articles by slug, in place; nothing already published is
+// merged, moved or deleted, and every article keeps its own URL. See
+// expansions.ts for what has been added so far and why those particular
+// articles were picked first (the ones that repeat a subject most).
+applyExpansions(ARTICLES);
+
+// CONSOLIDATION — switched off; see merges.ts. Kept as a no-op rather than
+// removed so the mechanism is available again without being rewritten, should
+// that decision ever change. With MERGES empty, buildMerged() absorbs nothing
+// and this is a pass-through.
 const { merged, absorbed } = buildMerged(ARTICLES);
 const standalone = ARTICLES.filter((a) => !absorbed.has(a.slug));
 ARTICLES.length = 0;
