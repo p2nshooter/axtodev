@@ -1016,6 +1016,201 @@ export const EXPANSIONS: Expansion[] = [
       },
     ],
   },
+  // ── microservices security: three articles, three directions ────────────
+  {
+    slug: 'the-pragmatics-of-microservices-security',
+    sections: [
+      {
+        h: 'The perimeter used to be the whole security model',
+        p: [
+          "A monolith has one obvious place to put security: the edge. Authenticate the user once at the front door, and every internal function call after that is trusted implicitly, because it is just a function call inside the same process, running under the same identity, with no network in between to intercept. That model breaks the moment a monolith is split into a dozen independently deployed services talking to each other over the network, because every one of those internal calls is now a network call, crossing a boundary that can be observed, intercepted, or spoofed by anything else with access to the same network — which, inside a typical data center or cloud VPC, is usually a lot more than the original architects assumed.",
+          "The blunt way to say this: a compromised service in a monolith-style perimeter model is often a compromised system, full stop, because the network path from that service to every other internal function was never designed to resist an attacker who is already inside. Microservices architecture inherits that same risk unless it deliberately does something different about the traffic between services, not just the traffic at the edge.",
+        ],
+      },
+      {
+        h: 'Mutual TLS: proving both sides of every internal call',
+        p: [
+          "Ordinary TLS, the kind protecting a browser connecting to a public website, proves the server's identity to the client but not the other way around — the server accepts connections from any client that can complete the handshake. Mutual TLS, mTLS, requires both sides to present a certificate, so a service receiving a connection can cryptographically verify not just that the traffic is encrypted but specifically which other service is on the other end, and reject the connection outright if the calling service's certificate is not one it recognizes as legitimate. This turns 'is this call actually coming from the billing service, or from something pretending to be it' from an assumption baked into network topology into a verified fact checked on every single connection.",
+          "The operational cost is real: every service now needs a certificate, certificates need to be issued, rotated before they expire, and revoked when a service is decommissioned or compromised, and doing this by hand across dozens or hundreds of services does not scale. This is precisely the problem a service mesh exists to solve.",
+        ],
+      },
+      {
+        h: 'What a service mesh actually automates',
+        p: [
+          "A service mesh — Istio and Linkerd are the two most widely deployed — works by attaching a small proxy, a sidecar, next to every service instance, and routing all network traffic in and out of that service through its sidecar rather than directly. The mesh's control plane then automatically issues, rotates and enforces mTLS certificates for every sidecar, so individual application teams never write certificate-handling code themselves; the mesh treats mutual TLS between services as infrastructure, the same way a cloud provider treats disk encryption as infrastructure rather than something every application team implements separately.",
+          "This centralization is also what makes mesh-level authorization policy practical: rather than each service independently deciding which callers to trust, the mesh can enforce a policy like 'only the checkout service may call the payments service' at the network layer, consistently, across every service in the mesh, which is a much smaller and more auditable set of rules than trying to replicate the same logic inside every individual service's own code.",
+        ],
+      },
+      {
+        h: 'Identity is the service, not just the request',
+        p: [
+          "A subtlety that trips up teams new to this model: authenticating the original end user at the edge does not automatically authenticate which internal service is making a given downstream call on that user's behalf. A request that has correctly proven 'this is user Alice' at the API gateway still needs a separate answer to 'and which service is now asking the payments service to charge Alice's card, and is that service actually allowed to do that.' Conflating the two — trusting an internal call simply because it carries a valid user token — is a common vulnerability, because a compromised internal service can then impersonate the user token it happens to be holding to reach services it was never meant to call directly.",
+          "The more robust pattern separates the two identities explicitly: a user-identity token proving who the original caller is, and a service-identity credential (typically the mTLS certificate itself) proving which service is making this specific hop, checked independently at every service boundary rather than assumed to be valid just because it arrived from inside the network.",
+        ],
+      },
+      {
+        h: 'Why this matters more, not less, as a system grows',
+        p: [
+          "A system with three services can plausibly get away with weaker internal security discipline, because the number of internal call paths is small enough that a team can reason about all of them by memory. That reasoning stops scaling somewhere well before a system reaches even a modest few dozen services, at which point nobody on the team can accurately name every internal call path that exists, let alone verify by inspection that each one is appropriately restricted — which is exactly when an unauthenticated or under-authorized internal call path becomes the kind of thing that survives in production for months before anyone notices it, because 'it's internal, so it's fine' quietly stopped being a safe assumption long before anyone updated the mental model that assumed it.",
+        ],
+      },
+      {
+        h: 'Short-lived certificates over long-lived ones',
+        p: [
+          "A certificate valid for a year is a liability sitting quietly on disk for a year, because if that credential is ever extracted from a compromised service, it remains usable by an attacker for however much of that year is left, regardless of when the compromise is eventually detected. Mature mTLS deployments deliberately issue certificates with very short lifetimes — hours, sometimes less — and automate reissuing them continuously in the background, so a stolen certificate is only useful for a narrow window rather than for months, which shrinks the value of stealing one in the first place and is a much stronger practical defense than trying to prevent every possible way a certificate could be exfiltrated.",
+          "This only works because the mesh or certificate-issuing infrastructure handles the constant reissuing transparently; asking individual application teams to manually rotate certificates every few hours would be unworkable, which is exactly why this is infrastructure the mesh owns rather than something bolted onto each service's own deployment process.",
+        ],
+      },
+      {
+        h: 'Defense in depth: the mesh is a layer, not a replacement for application-level checks',
+        p: [
+          "It is tempting, once a service mesh is handling authentication and authorization at the network layer, to treat that as sufficient and drop equivalent checks from application code — but a mesh policy is enforced at the network boundary, and a bug or misconfiguration in the mesh itself, or a request that reaches a service through some path the mesh does not mediate, leaves an application with zero remaining defense if it has stripped its own checks out entirely. Defense in depth means the mesh and the application both verify what they can, redundantly: the mesh restricting which services may call which, and the application independently checking that a given call is semantically valid for the identity making it, so that a failure in either layer alone does not become a complete compromise.",
+        ],
+      },
+      {
+        h: 'Auditing an mTLS deployment: proof, not a policy document',
+        p: [
+          "A written policy stating that all internal traffic uses mutual TLS is worth very little without a way to verify it holds in practice, because a single service quietly misconfigured to skip certificate verification, or a legacy internal call still using plaintext, can undermine the guarantee for the whole system while every dashboard and policy document continues to claim it is enforced. Mature deployments verify this continuously rather than trusting the initial configuration: actively scanning for any internal connection that is not using mTLS, and treating a single unencrypted or unauthenticated internal call path found in production as an incident worth investigating immediately, not a paperwork exception to note for later.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'the-pragmatics-of-microservices-security-vi91',
+    title: 'The Expanded Attack Surface: What Actually Changes When a Monolith Becomes Microservices',
+    excerpt:
+      "Splitting one process into many does not just distribute the workload, it multiplies the number of network boundaries an attacker can target — and most of the interesting new risk lives in the traffic between services, not at the edge.",
+    sections: [
+      {
+        h: 'Counting the boundaries, not just the services',
+        p: [
+          "The security-relevant number in a microservices system is not how many services exist, it is how many distinct network call paths connect them, and that number grows much faster than the service count itself — a system of ten services calling each other in a reasonably interconnected way can easily have several dozen distinct call paths, each one a place where an attacker could potentially intercept, replay, or forge traffic if that specific path is not independently secured. A monolith, by contrast, has exactly one externally reachable boundary regardless of how many internal modules or functions it contains, because internal calls never touch the network at all.",
+          "This is the concrete, measurable sense in which microservices genuinely expand the attack surface: it is not a vague claim about complexity, it is a specific multiplication of the number of network-observable, network-interceptable boundaries a system exposes, each of which needs its own deliberate security decision rather than inheriting one from a single perimeter.",
+        ],
+      },
+      {
+        h: 'East-west traffic: the direction most perimeter security ignores',
+        p: [
+          "Network security terminology borrows the metaphor of a map: north-south traffic crosses the perimeter, moving between the outside world and the internal network; east-west traffic moves laterally, service to service, entirely within the internal network. Traditional perimeter-focused security tooling — firewalls, intrusion detection, edge rate limiting — was built almost entirely to watch north-south traffic, because for decades that was where the actual boundary being defended lived. Microservices architecture generates enormous volumes of east-west traffic that this tooling was never designed to inspect, meaning a system can have a hardened, well-monitored edge and a completely unmonitored internal network, which is precisely the configuration that lets a single compromised service move laterally to a dozen others without tripping any alert, because nothing was watching that direction of traffic in the first place.",
+        ],
+      },
+      {
+        h: 'Zero trust: the model built for exactly this shape of problem',
+        p: [
+          "Zero trust architecture starts from a blunt premise: assume the network itself is already compromised, or will be, and design every individual connection to be independently verified rather than trusted because of where it originates. Applied to microservices, this means every service-to-service call is authenticated and authorized on its own merits — mutual TLS proving identity, an explicit policy proving that identity is allowed to make this specific call — regardless of whether the call happens to originate from 'inside' the network perimeter. This is a genuine philosophical shift from perimeter-based security, where being inside the network was itself sufficient grounds for trust, and it maps almost exactly onto what microservices architecture needs, because 'inside the network' stopped meaning much once east-west traffic became the dominant volume and the dominant risk.",
+          "Adopting zero trust in practice is incremental for most organizations, not a single migration: it typically starts with the highest-value internal boundaries — anything touching payments, personal data, or authentication itself — before extending the same discipline outward to lower-risk internal traffic, because verifying every single call from day one across an existing large system is rarely operationally realistic to do all at once.",
+        ],
+      },
+      {
+        h: 'Blast radius: the metric that actually matters after a breach',
+        p: [
+          "A more useful security question for a microservices system than 'can this be breached' — the answer to which is always yes, eventually, for any sufficiently large system — is 'what can an attacker reach once one specific service is breached.' A system with weak service-to-service authorization tends to have an enormous blast radius: compromise the least-important, least-monitored internal service and use its unrestricted network access to reach the payments database directly. A system with properly enforced service-to-service authorization contains that same breach to whatever narrow set of calls the compromised service was actually supposed to be allowed to make, which is a dramatically smaller and more survivable incident.",
+          "Designing deliberately for small blast radius — the principle of least privilege applied at the network layer, not just at the level of individual user permissions — is arguably the single highest-leverage security investment a microservices team can make, because it changes the outcome of the breach that will eventually happen rather than trying, unrealistically, to guarantee one never will.",
+        ],
+      },
+      {
+        h: 'Why network segmentation alone is not enough anymore',
+        p: [
+          "The traditional response to a larger attack surface was network segmentation — VLANs, subnets, firewall rules separating groups of machines so that even if one segment is compromised, the blast radius is contained to that segment. This still has value in a microservices deployment, but it was designed for an era when the boundary between segments was mostly static and coarse-grained, a handful of network zones rather than dozens of independently deployed, frequently redeployed services. Segmentation rules written for a dozen broad zones do not scale gracefully to expressing 'this specific service may call that specific service and no other,' which is the granularity a real microservices security posture actually needs — this is exactly the gap that service-mesh-level policy and per-call authorization exist to fill, operating at the level of individual services rather than broad network zones.",
+        ],
+      },
+      {
+        h: 'Supply chain risk multiplies with the number of independently built services',
+        p: [
+          "Every microservice typically has its own dependency tree, its own build pipeline, and its own container image, and a vulnerability in a widely used shared library shows up not once but potentially once per service that happens to depend on it — a monolith with one dependency tree has one place to patch a vulnerable library; a system of forty services each with their own slightly different dependency versions may need forty separate patches, applied and verified independently, and a team without an automated way to inventory which services depend on which library versions has no reliable way to even know how many of those forty are actually affected by a given disclosed vulnerability, let alone confirm all of them have been patched.",
+          "This is why software bill of materials tooling and automated dependency scanning became disproportionately more important as organizations moved to microservices: the manual process of 'check which of our systems use this library' that was tractable for one monolith becomes genuinely infeasible to do reliably by hand across dozens or hundreds of independently versioned services.",
+        ],
+      },
+      {
+        h: 'The attacker’s actual path rarely looks like the architecture diagram',
+        p: [
+          "Security reviews for microservices systems often focus on the boundaries the architecture diagram draws attention to — the API gateway, the main database — while the path a real attacker actually takes tends to route through whichever service was easiest to compromise, which is very often the least security-reviewed, least externally visible one: an internal admin tool, a batch job, a low-traffic service nobody thought needed the same scrutiny as the customer-facing ones. Threat modeling that only walks the obvious, high-traffic paths through the system misses exactly the low-visibility services that attackers in practice tend to target first, precisely because those services received the least security attention during design.",
+        ],
+      },
+      {
+        h: 'Observability and security are the same investment wearing two hats',
+        p: [
+          "Detecting lateral movement after a breach depends on exactly the kind of visibility into east-west traffic that observability tooling exists to provide — a service suddenly making calls to internal endpoints it has never called before is both a security anomaly and an observability anomaly, and a system with good service-to-service tracing already has most of the raw signal needed to notice it, even if nobody originally built that tracing with security in mind. Teams that treat observability and security tooling as entirely separate investments tend to under-invest in exactly the internal-traffic visibility that would let them detect a breach in progress, while teams that recognize the overlap get security value essentially for free out of infrastructure they were already building for operational reasons.",
+        ],
+      },
+      {
+        h: 'Why a security review needs an up-to-date service dependency map',
+        p: [
+          "A meaningful microservices security review depends on knowing, accurately, which services actually call which others — and in a system that has grown for a few years through many teams' independent decisions, that map is rarely something anyone can produce from memory or from the original architecture diagram, which tends to drift out of date almost immediately after it is drawn. Generating this map automatically, from the actual traffic the service mesh or tracing infrastructure observes rather than from documentation, is what makes it possible to notice a call path that should not exist at all, or one that exists but was never accounted for in the original threat model, well before an attacker discovers and exploits it first.",
+        ],
+      },
+      {
+        h: 'Third-party services are part of the attack surface too',
+        p: [
+          "A microservices system rarely stops at services the team itself wrote — payment processors, email providers, analytics platforms, and other external APIs are effectively additional nodes in the same call graph, and a credential or webhook endpoint shared with one of them is exposed to whatever security practices that third party follows, not just the team's own. Treating third-party integrations with the same scrutiny as internal services — scoped credentials rather than broad ones, verified webhook signatures rather than trusting unauthenticated callbacks — closes a gap that purely internal-facing security reviews routinely miss entirely.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'the-pragmatics-of-microservices-security-strategies-for-protecting-you',
+    title: 'Secrets and Gateways: The Two Places Microservices Security Actually Lives',
+    excerpt:
+      "An API gateway decides who gets into the system at all; secrets management decides whether a breached service can pivot into everything else it touches. Get either one wrong and the rest of the architecture barely matters.",
+    sections: [
+      {
+        h: 'Why secrets sprawl faster in microservices than in a monolith',
+        p: [
+          "A monolith typically has one configuration file, or one small set of them, holding the database password, the API keys, and whatever other credentials the application needs — a single, auditable surface. A microservices system has one such set of credentials per service, often duplicated across environments, and the practice that produces the most damage in practice is the same one that was tolerable, if sloppy, in a monolith: credentials hardcoded into source code or baked into container images. In a monolith that habit exposes one set of secrets if the source ever leaks; across dozens of independently built and deployed services, the same habit multiplies the number of places a leaked credential could be sitting, unnoticed, in version control history that nobody thought to scrub.",
+        ],
+      },
+      {
+        h: 'What a secrets manager actually buys a team',
+        p: [
+          "Tools like HashiCorp Vault, or a cloud provider's own secrets manager, exist to replace 'the credential is a string sitting in a config file or environment variable' with 'the credential is fetched at runtime from a service that can authenticate the caller, log every access, and rotate the underlying value without anyone having to redeploy the service that uses it.' The access-logging alone is a meaningfully different security posture: a leaked database password sitting in a config file gives no signal about who used it or when, while a secrets manager can show precisely which service fetched which credential, at what time, which turns 'we think this password might have leaked' into 'we can see exactly which services actually retrieved it and narrow the investigation accordingly.'",
+          "Rotation is the other half of the value, and it matters more in microservices than it did in a monolith specifically because of the multiplied surface described above: a secrets manager that can rotate a database credential and push the new value to every dependent service automatically closes a leak far faster than the old process of manually updating a config file and redeploying every affected service one at a time, which in a large microservices system could otherwise take hours during which the leaked credential remains valid.",
+        ],
+      },
+      {
+        h: 'The API gateway as the single front door worth hardening hardest',
+        p: [
+          "However many internal services a system has, it typically has just one or a small handful of true external entry points, and the API gateway sitting at that boundary is where the highest-value, most heavily scrutinized security controls tend to concentrate: authenticating every external request, enforcing rate limits to blunt abuse and denial-of-service attempts, validating request shape before it ever reaches a backend service, and centralizing the TLS termination and certificate management that would otherwise need to be duplicated at every individual service's own edge. Centralizing these concerns at the gateway rather than reimplementing them independently in every service is not just convenient, it is what makes a security review tractable at all — auditing one well-defined entry point is a fundamentally different task from auditing dozens of services each with their own slightly different authentication logic.",
+        ],
+      },
+      {
+        h: 'Where a gateway stops being sufficient on its own',
+        p: [
+          "A gateway secures the boundary between the outside world and the system, but it says nothing about the boundaries between services once a request is already inside, which is exactly the east-west traffic problem this cluster of articles keeps returning to. A system that hardens its gateway thoroughly and assumes that work is finished has secured exactly one of the many boundaries a real microservices architecture actually has, and a request that passes gateway validation but is then handled by a chain of internal services with no further authentication between them is still exposed to every risk of an unauthenticated internal call path — a compromised or malicious internal service can still reach anything downstream of it with no further check. The gateway and internal service-to-service security (mTLS, service mesh policy, per-call authorization) are complementary layers, not substitutes for each other, and a program that only invests in one of the two has covered roughly half of what a real microservices security posture actually requires.",
+        ],
+      },
+      {
+        h: 'The break-glass problem: secrets managers need their own failure mode plan',
+        p: [
+          "Centralizing every credential behind a secrets manager creates a new single point of failure that a config-file-per-service model never had: if the secrets manager itself becomes unreachable, every service that depends on it for a fresh credential can potentially fail simultaneously, which is a considerably worse outage than a single service's own credential expiring on its own. Mature deployments plan for this explicitly with a documented break-glass procedure — a way to retrieve or bypass normal secret retrieval during a secrets-manager outage, tightly audited and rarely used, but present so the team is not choosing between 'the secrets manager is down' and 'the entire platform is down' with no other option.",
+          "This same failure-mode thinking extends to caching: most secrets-manager client libraries cache the last successfully retrieved credential locally for some period specifically so a brief secrets-manager outage does not immediately cascade into every dependent service failing at once, trading a small window of using a slightly stale credential for meaningfully better resilience against the secrets manager's own availability problems.",
+        ],
+      },
+      {
+        h: 'Least privilege at the secrets layer, not just the network layer',
+        p: [
+          "It is common for a secrets manager to be deployed correctly from an encryption and rotation standpoint while still granting every service broad read access to every other service's secrets, which defeats much of the point: a compromised service with unrestricted secrets-manager access can read the database password for a completely unrelated service it was never meant to touch, turning what should have been a narrow, contained breach into system-wide credential exposure. Configuring per-service access policies at the secrets manager itself — this service may only read these specific secrets, nothing else — extends the same least-privilege principle that a properly configured service mesh applies to network calls, and skipping it at the secrets layer while enforcing it carefully at the network layer leaves exactly the kind of gap a real attacker looks for first.",
+        ],
+      },
+      {
+        h: 'Gateway-level authentication is necessary and, by itself, insufficient',
+        p: [
+          "A well-configured API gateway correctly rejects a request with no valid token, an expired token, or a token for the wrong audience, and this genuinely blocks the overwhelming majority of naive attacks aimed at the system's public entry point. What it does not do is protect against a request that carries a perfectly valid token for a legitimate but lower-privileged user attempting to reach an endpoint or resource that user should not be authorized to access — token validity and authorization are different checks, and a gateway that only performs the first is only doing half its job. Real gateway hardening layers fine-grained authorization on top of basic token validation: not just 'is this token valid' but 'is the identity in this token actually permitted to perform this specific action on this specific resource,' checked against a policy that is kept current as the system's actual permission model evolves rather than left as a rough approximation of it from whenever the gateway was first configured.",
+        ],
+      },
+      {
+        h: 'Secret sprawl across environments is its own distinct risk',
+        p: [
+          "It is common practice, for good reason, to run separate credentials for development, staging and production — but the same secrets manager typically holds all of them, and a misconfigured access policy that fails to separate environments cleanly can let a developer with legitimate access to staging secrets also read production ones, which defeats the entire purpose of having separated the environments in the first place. Auditing that environment boundaries are actually enforced at the secrets-manager access-policy level, not just assumed because the environments are nominally separate, is a small check that catches a surprisingly common and easily overlooked misconfiguration.",
+        ],
+      },
+      {
+        h: 'Input validation at the gateway is not a substitute for validation downstream',
+        p: [
+          "A gateway that validates request shape catches malformed input before it reaches any backend service, which is valuable, but it is tempting to conclude from this that backend services no longer need their own input validation — a conclusion that breaks the moment any internal service is called by another internal service directly, bypassing the gateway entirely, which is common in a real system's internal call graph. Every service that accepts input, whether from the gateway or from another internal service, needs to validate that input on its own terms rather than trusting that some upstream layer already did it on its behalf.",
+        ],
+      },
+    ],
+  },
 ];
 
 /**
