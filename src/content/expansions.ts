@@ -1498,6 +1498,136 @@ export const EXPANSIONS: Expansion[] = [
       },
     ],
   },
+  // ── cookies, sessions and tokens: two articles, two directions ──────────
+  {
+    slug: 'cookies-sessions-and-tokens',
+    sections: [
+      {
+        h: 'Where a session actually lives, and why that choice matters',
+        p: [
+          "'The server stores session state' sounds like one decision but is actually several, and which specific storage a team picks changes the operational character of the whole authentication system. An in-memory session store — a plain object or map living inside the application process — is the simplest possible implementation and the worst one for anything beyond a single server, because a session created on one server instance is invisible to every other instance, which breaks the moment a load balancer distributes requests from the same logged-in user across more than one machine. A shared store — Redis is the overwhelming default choice in practice — solves this by giving every application instance a common place to read and write session data, at the cost of adding a new piece of infrastructure the whole authentication system now depends on being available.",
+          "The choice is not purely technical either: a session store that is slow under load becomes a bottleneck on literally every authenticated request across the entire site, because every one of them needs a lookup against it, which makes session-store performance and availability a first-class operational concern rather than an incidental implementation detail nobody needs to think about after the initial build.",
+        ],
+      },
+      {
+        h: 'Sticky sessions: the workaround that trades one problem for another',
+        p: [
+          "Before shared session stores were the obvious default, a common workaround was 'sticky sessions' — configuring the load balancer to always route a given user's requests back to the same server instance that originally created their session, using a cookie or IP hash to make the routing decision. This avoids needing a shared store at all, but it reintroduces exactly the fragility a load balancer is normally meant to eliminate: if that one specific server goes down, every user whose session was stuck to it is logged out simultaneously, and the load balancer can no longer distribute load evenly across instances if some of them are disproportionately loaded up with stuck sessions. Most modern deployments prefer a shared, external session store specifically to avoid this coupling between a user's session and any one particular server's uptime.",
+        ],
+      },
+      {
+        h: 'Session fixation: an attack that exploits how sessions get created',
+        p: [
+          "Session fixation is a specific, well-known attack that targets a subtle mistake in session lifecycle management: if an application reuses the same session identifier across the anonymous-browsing state and the logged-in state, rather than issuing a brand new session id at the moment of successful login, an attacker who can plant a known session id in a victim's browser before they log in can then use that same known id themselves after the victim authenticates, effectively hijacking the now-authenticated session without ever needing to steal a cookie directly. The fix is simple to state and easy to forget in practice: always issue a fresh session identifier at the moment of login, discarding whatever pre-login session id existed, so that any session id an attacker might have planted beforehand becomes worthless the instant the real user actually authenticates.",
+        ],
+      },
+      {
+        h: 'Session hijacking versus session fixation: a distinction worth keeping straight',
+        p: [
+          "Session hijacking is the more general and more commonly discussed threat — an attacker obtains a victim's already-valid session identifier, typically by intercepting unencrypted traffic, exploiting a cross-site scripting vulnerability to read a cookie that should have been protected, or through network-level snooping on an unsecured connection — and reuses it directly to impersonate the victim without needing any credentials at all. The defenses differ meaningfully depending on which specific vector is the actual concern: HTTPS everywhere closes off network interception, HttpOnly cookies close off the XSS-driven cookie-theft vector by keeping the session cookie inaccessible to JavaScript entirely, and short session lifetimes combined with re-authentication for sensitive actions limit how much damage a hijacked session can do even if one of the other defenses fails.",
+        ],
+      },
+      {
+        h: 'What "logging out everywhere" actually requires',
+        p: [
+          "A feature users routinely expect — 'log out of all devices' — is trivial with server-side sessions and genuinely awkward with pure stateless tokens, which is one of the most concrete practical differences between the two models discussed in the original article. With sessions, logging out everywhere means deleting every session record associated with that user from the shared store, which takes effect immediately because every subsequent request from any of that user's devices fails the very next session lookup. A pure stateless token has no equivalent central record to delete — the token remains cryptographically valid until it naturally expires, which is precisely why systems that need reliable global logout either keep a token blocklist (reintroducing exactly the server-side lookup that stateless tokens were meant to avoid) or deliberately keep token lifetimes short enough that the gap between 'user requested logout' and 'the last valid token actually expires' stays acceptably small.",
+        ],
+      },
+      {
+        h: 'What actually goes into a session record besides identity',
+        p: [
+          "A session is often described as though it holds only 'which user this is,' but real production sessions typically carry more: the user's roles or permissions at the time of login, a CSRF token tied to that specific session, timestamps for idle and absolute expiry, and sometimes contextual data like the last-known IP address or device fingerprint used to detect a session that has suspiciously moved somewhere it should not have. Deciding what belongs in the session versus what should be looked up fresh from the database on each request is itself a real design trade-off: caching permissions in the session makes authorization checks cheap but means a permission change does not take effect until the session is refreshed or expires, while looking permissions up fresh on every request guarantees correctness at the cost of an extra database call on every single authenticated request.",
+        ],
+      },
+      {
+        h: 'Idle timeout versus absolute timeout: two different clocks',
+        p: [
+          "Session expiry is rarely governed by a single timer; mature systems track two independent clocks. Idle timeout logs a user out after a period of inactivity, resetting every time a new request arrives, and exists to limit exposure from a session left open on a shared or unattended device. Absolute timeout expires a session after a fixed duration regardless of activity, forcing re-authentication periodically even for a continuously active user, and exists to limit how long any single compromised session credential — however it was obtained — remains usable no matter how consistently it is being used. A system that only implements one of the two leaves a real gap: idle timeout alone lets an actively-used but stolen session persist indefinitely, while absolute timeout alone still leaves a real, if bounded, window of exposure for a session abandoned on a public terminal well before that fixed duration elapses.",
+        ],
+      },
+      {
+        h: 'Why the session cookie itself needs the same flags as any other',
+        p: [
+          "It is easy to focus security attention on how the server stores and validates session data while treating the cookie carrying the session id as an afterthought, but the id itself is the entire credential from the browser's side, and every one of the standard cookie security flags applies to it with full force: HttpOnly so client-side script cannot read it even through an unrelated XSS bug elsewhere on the page, Secure so it is never transmitted over an unencrypted connection where it could be intercepted, and SameSite so it is not automatically attached to requests originating from a different site, which closes off a meaningful class of cross-site request forgery. A perfectly designed server-side session store built on top of a cookie missing any of these flags still leaves the entire session vulnerable through the one piece the server does not fully control: the browser's own default handling of an under-protected cookie.",
+        ],
+      },
+      {
+        h: 'Rotating a session id after a privilege change',
+        p: [
+          "Beyond the login-time rotation that defeats session fixation, good practice rotates the session identifier again at any moment a user's privilege level meaningfully changes — after entering a second authentication factor, after an administrator grants elevated access — so that a session id observed or leaked before that privilege escalation cannot be reused afterward to inherit the newly elevated access it was never actually associated with in the first place.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'cookies-sessions-tokens',
+    title: 'JWTs Under the Hood: Structure, Signing and Why Revoking One Is Hard',
+    excerpt:
+      "A JWT is not encrypted, not a secret container, and not something a server can simply delete once issued. Understanding its three actual parts explains both its appeal and its most awkward limitation.",
+    sections: [
+      {
+        h: "Three parts, dot-separated, and only one of them is protected",
+        p: [
+          "A JSON Web Token is three base64url-encoded segments joined by dots: a header describing the signing algorithm, a payload holding the actual claims — user id, roles, expiration time, whatever the issuer decided to include — and a signature computed over the first two segments. The critical, frequently misunderstood detail is that base64url encoding is not encryption: anyone holding a JWT can decode the header and payload instantly using nothing more than a text editor and a base64 decoder, and see every claim inside in plain readable text. What the signature actually protects is integrity, not secrecy — it lets the server verify that the payload has not been tampered with since it was issued, not that the payload's contents are hidden from whoever is holding the token.",
+          "This has a direct practical consequence that trips people up constantly: never put a genuine secret — a password, a raw credit card number, anything that should not be visible to whoever holds the token — into a JWT payload, because 'signed' very specifically does not mean 'encrypted,' and anyone intercepting the token can read every claim in it just by decoding, with no key or secret required at all.",
+        ],
+      },
+      {
+        h: 'Symmetric versus asymmetric signing: who is allowed to issue tokens',
+        p: [
+          "HS256, a symmetric algorithm, signs and verifies a token using the exact same secret key, which means anything capable of verifying a token is also capable of forging one — fine when a single service both issues and checks its own tokens, but a real liability the moment several independent services need to verify tokens issued by one central authority, because distributing that one shared secret to every verifying service also hands each of them the ability to mint arbitrary valid tokens themselves. RS256, an asymmetric algorithm, separates the two roles: tokens are signed with a private key only the issuing authority holds, and verified with a corresponding public key that can be distributed freely to any number of services, none of which gain any ability to forge new tokens just because they can verify existing ones. This is exactly why RS256 is the default choice in any system with more than one service that needs to check tokens independently, even though it is computationally a bit more expensive than the symmetric alternative.",
+        ],
+      },
+      {
+        h: 'The revocation problem, precisely stated',
+        p: [
+          "The entire performance appeal of tokens is that a server can verify one without looking anything up in shared storage — no database call, no cache lookup, just cryptographic verification of the signature and a check of the expiration claim. That same property is exactly what makes a JWT hard to revoke: there is no central record for a server to check against, and none to delete, so a token remains fully valid, accepted by any verifier, for its entire stated lifetime regardless of anything that happens after it was issued — a user changing their password, an administrator disabling their account, a security team explicitly wanting a specific token invalidated right now. This is not a bug or an oversight in how JWTs are designed; it is the direct, unavoidable consequence of the exact same statelessness that makes them fast and easy to scale in the first place.",
+        ],
+      },
+      {
+        h: 'Why access tokens are kept short-lived and refresh tokens are not',
+        p: [
+          "The standard mitigation for the revocation problem is architectural rather than cryptographic: issue access tokens with a short lifetime — commonly fifteen minutes or less — precisely so that a compromised or logically-should-be-revoked token has only that same short window during which it stays exploitable. A refresh token, longer-lived and used only to obtain fresh access tokens rather than sent with every ordinary request, is what makes short-lived access tokens practical without forcing the user to log in again every fifteen minutes — and critically, refresh tokens are typically tracked server-side and can be revoked directly, since they are used rarely enough that a database lookup on each refresh is an acceptable cost, unlike the far more frequent access-token checks that need to stay lookup-free. This split is the actual mechanism that gives JWT-based systems something close to session-store-style revocability, just with a deliberate delay bounded by the access token's short lifetime rather than truly immediate effect.",
+        ],
+      },
+      {
+        h: 'Where to actually store a token in the browser, and why the obvious answer is wrong',
+        p: [
+          "Storing a JWT in `localStorage` is a common first instinct because it is simple and directly accessible from JavaScript, and it is also a genuine security liability: any successful cross-site scripting attack on the page gets trivial, complete access to read the token directly, because `localStorage` has no equivalent to a cookie's HttpOnly flag that would keep it out of reach of running JavaScript. Storing the token in an HttpOnly, Secure, SameSite cookie instead closes off that specific theft vector — JavaScript cannot read an HttpOnly cookie's contents even if an XSS vulnerability exists elsewhere on the page — but it reopens exposure to cross-site request forgery, since cookies are attached to requests automatically by the browser regardless of which site's page triggered the request. Neither storage location is a strictly safe default; each closes one class of attack while leaving the other theoretically open, which is why real hardening combines HttpOnly cookie storage with CSRF tokens or the SameSite cookie attribute, addressing both risks together rather than treating either storage choice alone as sufficient protection on its own.",
+        ],
+      },
+      {
+        h: 'The "none" algorithm vulnerability: a lesson in trusting the wrong field',
+        p: [
+          "A well-known class of real JWT vulnerabilities came from libraries that trusted the algorithm named in the token's own header rather than enforcing which algorithm the verifier actually expected — the JWT specification includes an 'alg: none' option for genuinely unsigned tokens, and a verifier that naively reads the algorithm from the token itself and honors whatever it says can be tricked into accepting a completely unsigned, trivially forged token simply because the attacker set the header to say so. The correct, hardened verification pattern never trusts the token's own claimed algorithm; it is configured in advance with the specific algorithm and key the verifier expects, and rejects outright any token that does not match, regardless of what the token's header itself claims about how it was supposedly signed.",
+        ],
+      },
+      {
+        h: 'Clock skew and the expiration check that fails in a confusing way',
+        p: [
+          "A JWT's expiration claim is just a timestamp, checked against the verifying server's own clock, which introduces a subtle operational failure mode in any system spanning multiple servers: if one server's clock has drifted even a little relative to the one that issued the token, a token that should still be valid can be rejected as expired, or one that should have expired can still be accepted, purely because of a clock disagreement that has nothing to do with the token itself. Production JWT libraries typically build in a small configurable leeway — a few seconds of tolerance around the exact expiration boundary — specifically to absorb minor, expected clock drift between machines, though this is a mitigation for a symptom rather than a fix for the underlying cause, which is why keeping server clocks properly synchronized via NTP remains the actual first line of defense.",
+        ],
+      },
+      {
+        h: 'Claims beyond identity: audience and issuer as a second-guard against misuse',
+        p: [
+          "Beyond who the user is and when the token expires, the JWT specification defines an issuer claim, naming which authority created the token, and an audience claim, naming which service or services the token is actually meant for — and checking both, not just the signature, matters more than it might first appear: a token correctly signed by a legitimate authority but intended for one internal service could otherwise be replayed against a completely different service if that service only checks the signature and never confirms the token was actually meant for it. Verifying audience and issuer alongside the signature closes off exactly this kind of token-replay-across-services risk, which is a real concern in any system where one central identity provider issues tokens consumed by many different internal services with different trust levels.",
+        ],
+      },
+      {
+        h: 'Why a JWT is usually the wrong place for frequently changing data',
+        p: [
+          "Because a JWT's claims are baked in at signing time and cannot be updated without issuing an entirely new token, embedding data that changes often — a live permission set, a mutable profile field — quietly reintroduces a staleness problem: the token keeps asserting whatever was true at issuance until it is refreshed, which is fine for slowly changing facts like a user id but a poor fit for anything expected to reflect current state at the moment of each request.",
+        ],
+      },
+      {
+        h: 'Refresh token rotation: catching a stolen refresh token in the act',
+        p: [
+          "A further hardening on top of a plain long-lived refresh token is rotation: each time a refresh token is used to obtain a new access token, the server also issues a brand new refresh token and immediately invalidates the old one, so a legitimate client and an attacker who both happen to be holding the same stolen refresh token will have one of their next refresh attempts rejected outright, since only the first one to use it succeeds — and a server seeing an already-invalidated refresh token reused is itself a strong, actionable signal that a theft has actually occurred.",
+        ],
+      },
+    ],
+  },
 ];
 
 /**
