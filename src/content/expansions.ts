@@ -6831,6 +6831,18 @@ export const EXPANSIONS: Expansion[] = [
           "Someone already skilled at writing a clear ticket, a clear pull request description, or a clear design document tends to pick up effective prompting quickly, since the underlying skill — anticipating what a reader needs to know and stating it explicitly rather than assuming shared context — transfers directly; this article's practices are, in a real sense, that same existing skill applied to a new kind of reader.",
         ],
       },
+      {
+        h: "Why reading the full response before acting on any part of it avoids a specific, common mistake",
+        p: [
+          "Acting on the first few lines of a response before reading the rest risks missing a caveat, a stated assumption, or a noted limitation the model included further down — reading the entire response fully before making any changes based on it is a small discipline that catches exactly the kind of qualification a partial read would miss entirely.",
+        ],
+      },
+      {
+        h: "Why a short pause to reread a request before sending catches an easy but costly omission",
+        p: [
+          "A quick reread of a drafted prompt, checking specifically whether it states the constraints, examples, and context this article has emphasized, catches an easily-missed omission before it costs an entire wasted round trip on an underspecified request.",
+        ],
+      },
     ],
   },
   {
@@ -7033,6 +7045,18 @@ export const EXPANSIONS: Expansion[] = [
           "A vague, half-remembered sense of 'boilerplate is fine, novel logic is risky' degrades under real deadline pressure into whatever feels most convenient in the moment, while an actually written-down, concrete framework — referenced explicitly before a delegation decision, not just recalled loosely — holds up considerably better exactly when the judgment matters most, under the pressure that erodes vaguer, unwritten intentions first.",
         ],
       },
+      {
+        h: "Why the safest first tasks to delegate are ones with an existing, automatable way to check the result",
+        p: [
+          "A task whose correctness can be mechanically verified afterward — does it compile, do the existing tests still pass, does the output match an expected schema — is a safer place to start building trust in delegation than a task whose correctness depends entirely on manual judgment, since the mechanical check catches an obvious failure immediately regardless of how carefully a human reviewer happens to be paying attention that day.",
+        ],
+      },
+      {
+        h: "Why keeping a running log of delegation outcomes turns intuition into evidence over time",
+        p: [
+          "A brief, ongoing personal log noting which delegated tasks actually saved time once verification was honestly counted, and which did not, turns vague gut feeling into an evidence base a developer can actually consult, refining the framework in this article against real, remembered outcomes rather than an impression that fades with time.",
+        ],
+      },
     ],
   },
   {
@@ -7126,6 +7150,18 @@ export const EXPANSIONS: Expansion[] = [
         h: "Why treating this as a solved problem, rather than an ongoing practice, is the actual risk",
         p: [
           "A team that implements these safeguards once and considers the safety question permanently settled is exactly as exposed as a team with no safeguards at all, once its actual usage patterns, the underlying tools, or the team's own composition inevitably shift — genuine safety here is an ongoing practice of periodic reassessment, not a checklist completed once and then filed away as finished.",
+        ],
+      },
+      {
+        h: "Why a clear escalation path for a suspected AI-introduced incident speeds up the actual response",
+        p: [
+          "Knowing in advance who to notify and what immediate steps to take the moment an incident is suspected to trace back to AI-assisted code, rather than figuring this out for the first time during an actual live incident, shortens response time exactly when it matters most, mirroring the same rollback-runbook discipline covered elsewhere in this library for deployment incidents generally.",
+        ],
+      },
+      {
+        h: "Why treating this article's practices as a floor, not a ceiling, matters for genuinely sensitive systems",
+        p: [
+          "A team working on genuinely high-stakes systems — financial infrastructure, medical software — should treat every practice covered here as a minimum baseline rather than a complete, sufficient policy, adding further safeguards proportional to the actual stakes involved rather than assuming this article's general guidance alone is enough for every possible context.",
         ],
       },
     ],
@@ -7336,6 +7372,18 @@ export const EXPANSIONS: Expansion[] = [
           "Debuggers, IDEs, static analyzers, and now AI assistants have each transformed how developers work, and this simple, low-tech technique has remained useful and relevant through every single one of those transformations without needing to change at all — that endurance, unlike almost any other specific tool or technique from decades past, is itself the clearest evidence that it addresses something genuinely fundamental about how understanding actually gets built, not a passing fad tied to any particular generation of tooling.",
         ],
       },
+      {
+        h: "Why writing the explanation as if for a formal bug report clarifies thinking fastest",
+        p: [
+          "Structuring an explanation the way a formal bug report would be written — expected behavior, actual behavior, steps that lead to the discrepancy — imposes a useful, disciplined structure on what might otherwise be a rambling, unfocused explanation, and that structure alone often does more to surface the actual gap in reasoning than a looser, conversational explanation would.",
+        ],
+      },
+      {
+        h: "Why this technique deserves a place in a formal onboarding checklist for new engineers",
+        p: [
+          "New engineers unfamiliar with a team's debugging culture often default to interrupting a colleague at the first sign of being stuck, and explicitly introducing this technique during onboarding, rather than leaving it to be discovered informally later, gives them a genuinely useful first step to try before escalating.",
+        ],
+      },
     ],
   },
   {
@@ -7423,6 +7471,12 @@ export const EXPANSIONS: Expansion[] = [
         h: "Why understanding this mechanism ultimately makes a developer a better collaborator with the tool, not a more suspicious one",
         p: [
           "Genuine understanding of why hallucination happens replaces vague, generalized anxiety about AI-generated code with a precise, targeted sense of exactly where verification actually matters most — which is a more useful, sustainable stance than either uncritical trust or blanket suspicion, since it lets a developer extend confidence exactly where confidence is actually warranted and reserve scrutiny exactly where scrutiny is actually needed.",
+        ],
+      },
+      {
+        h: "Why an internal knowledge base of already-verified APIs speeds up verification for common cases",
+        p: [
+          "A team that maintains a small, shared list of libraries and APIs it has already verified as genuinely reliable in AI-generated suggestions can skip re-verifying those specific, already-trusted cases every single time, reserving the full verification effort discussed throughout this article for genuinely unfamiliar references rather than re-checking the same well-established ones repeatedly.",
         ],
       },
     ],
