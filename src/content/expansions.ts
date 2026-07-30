@@ -1211,6 +1211,293 @@ export const EXPANSIONS: Expansion[] = [
       },
     ],
   },
+  // ── async programming: four articles, four directions ───────────────────
+  {
+    slug: 'embracing-async-programming',
+    sections: [
+      {
+        h: 'One thread, and the trick that makes it feel like many',
+        p: [
+          "JavaScript, in both the browser and Node.js, runs application code on a single thread — there is no built-in way to run two pieces of JavaScript logic genuinely simultaneously the way a multi-threaded language can. And yet a Node.js server routinely handles thousands of concurrent connections without visibly stalling, which sounds like a contradiction until the actual mechanism is separated from the illusion: the single JavaScript thread is never blocked waiting on I/O, because I/O — reading a file, querying a database, making a network request — is handed off to the underlying operating system or a dedicated thread pool, and the JavaScript thread is freed to do other work while that operation is in flight, resuming only when the result is ready.",
+          "This is the entire trick behind 'async' in a single-threaded language: not literal parallelism, but never sitting idle waiting for something slow to finish. A synchronous read call would freeze the one thread entirely until the disk responds; an asynchronous one returns immediately with a promise of a future result, letting the thread move on to whatever else is waiting to run, and come back to this operation's continuation once the result actually arrives.",
+        ],
+      },
+      {
+        h: 'The event loop: the scheduler behind the illusion',
+        p: [
+          "The event loop is the mechanism that makes this handoff and resumption actually work, and it is worth being precise about what it does: it repeatedly checks whether the call stack is empty, and if so, takes the next completed callback from a queue and pushes it onto the stack to run. Every asynchronous operation — a timer firing, a network response arriving, a file read completing — does not interrupt whatever is currently running; it simply adds its callback to a queue, to be picked up only once the currently executing code finishes and the stack goes empty. This is precisely why a `setTimeout(fn, 0)` does not run immediately even though its delay is zero — it still has to wait for the current synchronous code to finish and for the event loop to reach the point of checking its queue.",
+          "Node.js layers several distinct queues on top of this basic idea — timers, I/O callbacks, `setImmediate`, and close callbacks each get their own phase in the loop, processed in a fixed order on every iteration — which is why the precise ordering of several asynchronous operations queued around the same time can be less intuitive than 'first in, first out' might suggest, and is a common source of subtle bugs for anyone reasoning about ordering by instinct rather than by the loop's actual documented phases.",
+        ],
+      },
+      {
+        h: 'Why this scales better for I/O-bound work specifically',
+        p: [
+          "The single-threaded-plus-event-loop model is a poor fit for CPU-bound work — a heavy computation running on the one JavaScript thread blocks everything else exactly as it would in any single-threaded system, because there is no I/O involved to hand off in the first place, only pure computation the thread has to grind through. Where the model genuinely shines is I/O-bound work, which describes the overwhelming majority of what a typical web server actually does: waiting on a database, waiting on a downstream API, waiting on a file system. A traditional thread-per-request server pays real memory and context-switching overhead for every one of those idle waiting threads; a single event-loop thread handling the same load pays none of that overhead, because there is only ever one thread, and it is never sitting idle waiting for any of them, always finding some other request's next step to work on instead.",
+        ],
+      },
+      {
+        h: 'The one rule that breaks the whole model',
+        p: [
+          "The entire performance story above depends on one implicit promise: nothing runs long enough on the single thread to noticeably delay everything else queued behind it. A synchronous, CPU-heavy function call — parsing a very large JSON payload synchronously, running a complex regular expression against a huge string, a tight computational loop — blocks the event loop for its entire duration, during which literally nothing else can run: no other request is handled, no timer fires, nothing progresses. This is why 'never block the event loop' is close to the single most important operational rule in Node.js specifically, and why CPU-heavy work is routinely pushed off to worker threads or separate processes rather than run inline, even though the async I/O model elsewhere in the same application handles thousands of concurrent operations without any trouble at all.",
+        ],
+      },
+      {
+        h: 'What this means for how code should actually be written',
+        p: [
+          "Understanding the event loop changes what counts as a performance bug in this model. A slow database query is not, by itself, a problem for other users of the same server, because the thread is free to serve them while that query is pending. A CPU-bound function that takes two hundred milliseconds to run synchronously, however, is a real problem, because it blocks every other pending request for that entire two hundred milliseconds regardless of how fast or slow any of them individually would otherwise have been. Optimizing an async application well means finding and eliminating exactly this kind of synchronous CPU work on the hot path, which is a genuinely different debugging target than the kind of optimization a multi-threaded, blocking-I/O application would need, and is the reason profiling an async server usually starts by looking for what, if anything, is quietly blocking the loop.",
+        ],
+      },
+      {
+        h: 'Worker threads: the escape hatch for when the model does not fit',
+        p: [
+          "Node.js added worker threads specifically to give CPU-bound work a way out of the single-threaded model without abandoning the rest of the async I/O architecture that everything else relies on: a worker thread runs genuinely in parallel, on its own thread, with its own isolated memory rather than shared state, communicating with the main thread only via explicit message passing. This is a deliberate, narrow escape hatch rather than a general concurrency primitive — it exists for the specific case of heavy computation that would otherwise block the event loop, and reaching for it for ordinary I/O-bound work, which the event loop already handles efficiently without any extra threads, would just add complexity for no benefit.",
+        ],
+      },
+      {
+        h: 'Why "async" and "concurrent" are not synonyms',
+        p: [
+          "It is easy to conflate 'this code uses async/await' with 'this code runs concurrently,' but the two claims are not equivalent, and the sequential-await-in-a-loop pattern is the clearest illustration: code can be full of `await` keywords and still execute every operation one after another, with zero actual concurrency, if each one is awaited individually before the next begins. Real concurrency in this model comes specifically from starting multiple operations before awaiting any of them — `Promise.all` being the most direct expression of that — and understanding this distinction is what separates writing async code that merely avoids blocking the thread from writing async code that also genuinely overlaps independent work in time.",
+        ],
+      },
+      {
+        h: 'Why browsers adopted the same shape independently',
+        p: [
+          "The browser's own JavaScript environment converged on essentially the same single-thread-plus-event-loop model as Node.js, for a related but distinct reason: a browser tab has exactly one thread available for running page script and updating the visible page, and any long-running synchronous JavaScript blocks the page from rendering or responding to clicks for its entire duration, producing the frozen, unresponsive tab every user has experienced at least once. Asynchronous APIs — `fetch`, timers, most DOM events — exist in the browser for precisely the same underlying reason Node.js relies on them for I/O: keeping the one available thread free to keep the page interactive, rather than tied up waiting on something slow.",
+        ],
+      },
+      {
+        h: 'Async in other single-threaded-feeling languages',
+        p: [
+          "Python's asyncio, added natively rather than borrowed from a framework, follows the same essential shape: coroutines defined with `async def`, an event loop scheduling them, and `await` yielding control back to that loop rather than blocking the interpreter — the vocabulary is nearly identical to JavaScript's because the underlying problem, and the solution shape that problem tends to produce, is the same regardless of which language happens to be expressing it. The detail that trips up developers moving between the two: Python's asyncio coroutines do not run at all until something actually awaits or schedules them, whereas a JavaScript promise begins executing its body immediately upon creation, which is a small but real semantic difference hiding underneath very similar-looking syntax.",
+        ],
+      },
+      {
+        h: 'Backpressure: what happens when producers outrun consumers',
+        p: [
+          "An async system that reads from a fast source and writes to a slower one — reading a large file quickly while writing it slowly to a rate-limited network connection — can silently buffer an unbounded amount of data in memory if nothing pushes back on the fast side, which is exactly the failure mode Node.js streams are built to prevent by propagating a signal back upstream telling the source to pause once the destination cannot keep up, then resume once it can.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'embracing-async-programming-83gr',
+    title: "From Callbacks to Promises to Async/Await: How JavaScript's Async Syntax Evolved",
+    excerpt:
+      "The underlying mechanism behind JavaScript's asynchronous code has not changed in twenty years. What changed three times is the syntax wrapped around it — and each change solved a real, specific problem with the syntax before it.",
+    sections: [
+      {
+        h: 'Callbacks: the original, and the pyramid they produced',
+        p: [
+          "The earliest and still most fundamental pattern for asynchronous JavaScript is the callback: pass a function to be invoked once an operation completes, rather than waiting for a return value that is not yet available. This is not a wrapper around some deeper mechanism, it is the actual, literal mechanism the event loop uses under the hood — every promise and every async/await statement, underneath everything else, still ultimately resolves down to a callback registered with the runtime. The problem callbacks introduce is entirely about composition: chaining several dependent asynchronous steps together with nested callbacks produces code that grows to the right with every added step, colloquially called 'callback hell,' and error handling in this style has to be repeated manually at every single nesting level, because there is no shared mechanism for a failure at any step to propagate cleanly to a single handler at the end.",
+        ],
+      },
+      {
+        h: 'Promises: giving an eventual value a name',
+        p: [
+          "A promise represents an eventual value or failure as an actual object that can be passed around, returned from functions, and chained — `.then()` for success, `.catch()` for failure — rather than requiring the caller to hand over a callback at the point the operation begins. This solved callback hell's composition problem directly: `.then()` chains read top to bottom rather than nesting rightward with every added step, and critically, an error anywhere in the chain propagates automatically to the nearest `.catch()`, rather than needing to be checked and re-handled at every individual step the way plain callbacks required. `Promise.all()` further solved a specific composition problem callbacks handled clumsily at best: running several independent asynchronous operations concurrently and waiting for all of them to finish, which took genuinely awkward manual counting logic in the callback style and became a single, direct built-in call with promises.",
+        ],
+      },
+      {
+        h: 'Async/await: promises, written to look synchronous',
+        p: [
+          "Async/await did not introduce a new underlying mechanism at all — an `async` function still returns a promise, and `await` is, mechanically, sugar for attaching a `.then()` continuation and pausing that function's execution until it resolves. What it changed was purely how the code reads: a sequence of dependent asynchronous steps can be written as a straightforward series of statements, each on its own line, using ordinary `try`/`catch` for error handling instead of `.then()`/`.catch()` chains, which reads and debugges far closer to familiar synchronous code than either of the two styles before it. This is genuinely just syntax over the same promise machinery — nothing about the event loop, the microtask queue, or how asynchronous operations actually execute changed at all when async/await was introduced; what changed was how much of that machinery a developer has to think about explicitly while writing ordinary application code.",
+        ],
+      },
+      {
+        h: 'Why all three styles still coexist in real codebases',
+        p: [
+          "Despite async/await being the modern default for new code, callback-based APIs are still common, particularly in older Node.js core modules and libraries that predate promises becoming standard, and promise chaining remains the more natural style for certain patterns — racing several operations with `Promise.race()`, or fire-and-forget error handling on a promise that is not being awaited. A working knowledge of all three is still practically necessary, not historical trivia, because a real codebase built up over several years is likely to contain a genuine mixture, and 'promisifying' an old callback-based API — wrapping it so it can be awaited like anything else — is common enough integration work that Node.js ships a built-in utility, `util.promisify`, specifically to do it.",
+        ],
+      },
+      {
+        h: 'The microtask queue: why promises jump the queue ahead of timers',
+        p: [
+          "One detail that trips up developers who learned promises without learning the event loop underneath: promise callbacks run on a separate, higher-priority microtask queue that is fully drained between every single macrotask — meaning every pending `.then()` continuation runs before the next `setTimeout` callback fires, even a `setTimeout` scheduled with a delay of zero, because macrotasks like timers are only picked up once the microtask queue is completely empty. This is why interleaving `console.log` statements from promises and timers scheduled at what looks like the same moment in the code does not print in the order the code reads top to bottom, and why understanding this specific queue-priority detail, rather than a vague sense that 'promises are async', is what actually predicts the real execution order in cases where it matters.",
+        ],
+      },
+      {
+        h: 'Generators: the overlooked predecessor async/await borrowed from',
+        p: [
+          "Before async/await existed as native syntax, libraries built pseudo-async/await using ES6 generator functions combined with a small runner utility — a generator can pause its own execution at a `yield` point and be resumed later with a value, which a runner could exploit to pause at each yielded promise, wait for it to resolve, and resume the generator with the result, producing code that looked remarkably close to what async/await eventually standardized as a native language feature. Recognizing this lineage clarifies what async/await actually is at the specification level: not a wholly new execution primitive, but a purpose-built, native version of a pattern the community had already been approximating with generators, formalized and optimized once its usefulness was well established through years of userland use.",
+        ],
+      },
+      {
+        h: '`Promise.allSettled` and the gap `Promise.all` left open',
+        p: [
+          "`Promise.all` rejects as soon as any single promise in the batch rejects, discarding the results of every other operation in that batch even if most of them actually succeeded — which is exactly the right behavior when every operation in the batch is required to succeed for the overall result to make sense, but the wrong behavior when the goal is simply to attempt several independent operations and see which ones succeeded regardless of any individual failures. `Promise.allSettled` was added specifically to serve that second case, resolving with an array describing the outcome, success or failure, of every promise in the batch rather than short-circuiting on the first rejection, and its existence as a distinct method is itself evidence of how much real-world usage of `Promise.all` was quietly working around a mismatch between what it actually does and what a meaningful fraction of call sites actually needed.",
+        ],
+      },
+      {
+        h: 'jQuery deferreds: a parallel, pre-standard attempt at the same problem',
+        p: [
+          "Before native promises were standardized, jQuery shipped its own Deferred object offering a broadly similar `.then()`-style chaining API, and for years it was the way a large fraction of the JavaScript ecosystem actually wrote asynchronous code, despite not being part of the language itself. Its API diverged from the eventual native Promises/A+ specification in several subtle but real ways — most notably in how chained errors propagated — which meant code written against jQuery's Deferred and code written against native promises were not directly interchangeable, and migrating a codebase from one to the other took deliberate, careful work rather than a simple find-and-replace, a real cost paid across the ecosystem as native promises eventually won out as the standard.",
+        ],
+      },
+      {
+        h: 'Why async iterators needed their own, later addition',
+        p: [
+          "Async/await solved awaiting a single eventual value cleanly, but consuming a stream of eventual values — paginated API results, or a stream of chunks from a large file — needed its own syntax, added later: `for await (const item of asyncIterable)`, which awaits each value from an async iterator in turn. This was not a foregone, obvious extension at the time async/await itself was standardized; iterating over something that produces values asynchronously, one at a time, is a distinct enough problem from awaiting one single eventual value that it genuinely needed its own specification work and its own syntax, arriving as a related but separate addition to the language rather than falling out for free from ordinary async/await.",
+        ],
+      },
+      {
+        h: 'Async generators: combining the two later additions into one',
+        p: [
+          "Once both async/await and async iteration existed as separate language features, combining them was a natural next step: an async generator function, declared with `async function*`, can `await` inside its body while also `yield`-ing a sequence of values one at a time, giving a single, unified syntax for defining a stream of asynchronously produced values rather than requiring a hand-rolled object implementing the async iterator protocol manually.",
+        ],
+      },
+      {
+        h: 'Why TypeScript made this evolution easier to trust',
+        p: [
+          "A statically typed `Promise<T>` return type makes the distinction between a value and a promise of that value visible directly in a function's signature rather than something a caller has to infer or remember, which is a meaningful part of why the shift from callbacks toward promises and async/await was easier to adopt safely in TypeScript codebases than in plain JavaScript ones — the type checker itself flags many of the missing-await mistakes described elsewhere in this cluster of articles before the code ever runs.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'embracing-async-programming-3u3w',
+    title: 'Error Handling and Cancellation in Async Code: The Two Problems Async/Await Syntax Does Not Solve for You',
+    excerpt:
+      "Async/await makes asynchronous code look synchronous, which is exactly why it is easy to forget that it still fails and gets abandoned in ways synchronous code never does — and both of those need to be handled deliberately, not assumed away by the syntax.",
+    sections: [
+      {
+        h: 'An unhandled rejection is not the same as an uncaught exception',
+        p: [
+          "A synchronous exception that is never caught crashes the program immediately and loudly, in a way that is impossible to miss during development. A rejected promise with no `.catch()` and no surrounding `try`/`catch` used to fail silently in older JavaScript environments — the failure would simply vanish, leaving no trace that anything had gone wrong at all, which is a genuinely dangerous default for a runtime to have. Modern Node.js and browsers now at least surface an `unhandledRejection` warning or event, which is an improvement, but the underlying risk has not gone away: an `async` function called without `await` and without its own `.catch()` can fail in a way that is easy to miss entirely unless the surrounding code is deliberately structured to catch it, because nothing about calling an async function without awaiting it forces the caller to confront what happens if it fails.",
+        ],
+      },
+      {
+        h: "Forgetting await is a bug that looks nothing like a bug",
+        p: [
+          "Calling an `async` function without the `await` keyword in front of it is syntactically valid and produces no error at the point of the call — the function starts running immediately, and the calling code continues on to its next line without waiting for the result, silently proceeding with a promise object it never inspects rather than the resolved value it was presumably expecting. This is a uniquely quiet class of bug because there is no crash, no obvious error message pointing at the mistake, and no exception at the call site; the visible symptom shows up somewhere entirely different and later — a value that is `undefined` or a `[object Promise]` where a real value was expected, several function calls away from where the actual missing `await` lives, or a race condition where code that assumed a prior operation had completed runs before it actually has.",
+        ],
+      },
+      {
+        h: 'Sequential await in a loop: correct but often not what was intended',
+        p: [
+          "Writing `for (const item of items) { await process(item); }` is completely correct JavaScript and produces the exact intended behavior when each iteration genuinely must wait for the previous one to finish — but it is also an extremely common accidental performance bug when the operations are actually independent of each other, because this pattern runs every iteration strictly one after another rather than concurrently, turning what could have been one round trip's worth of total wait time into N round trips' worth, stacked up serially. The fix when the operations genuinely are independent is `Promise.all(items.map(process))`, which starts every operation immediately and waits for all of them together — but reaching for that fix requires first recognizing that the sequential-await version, despite reading naturally and working correctly, is not actually running concurrently at all, which is exactly the kind of thing that async/await's synchronous-looking syntax makes easy to miss.",
+        ],
+      },
+      {
+        h: 'Cancellation: the problem promises were never designed to solve',
+        p: [
+          "A promise, once created, represents an operation that is already underway, and nothing in the original promise specification provides any built-in way to cancel it partway through — a fetch request that the user no longer cares about, because they navigated away from the page, keeps running to completion in the background regardless, silently wasting bandwidth and server resources for no purpose. `AbortController` was added specifically to close this gap: an abort signal can be passed into a fetch call or any API built to respect it, and calling `.abort()` on the associated controller causes the pending operation to reject early rather than run to an ignored completion. Cancellation still has to be threaded through deliberately by whoever writes the asynchronous function — an operation that does not explicitly check for or respond to an abort signal simply ignores it and keeps running regardless, which means cancellability is a property that has to be designed into an async function from the start, not something that comes for free just because the function happens to be asynchronous.",
+        ],
+      },
+      {
+        h: 'Timeouts as a cancellation problem in disguise',
+        p: [
+          "A request with no explicit timeout can, in principle, hang forever if the remote side never responds and never closes the connection, and 'the operation eventually succeeds or fails' is an assumption async/await's clean syntax quietly encourages, precisely because the code reads as though it will simply proceed to the next line once the await resolves, with no visual reminder that resolution might never actually happen. Production async code generally needs an explicit timeout wrapped around any operation crossing a network boundary — racing the real operation against a timer using `Promise.race()`, or passing a timeout-linked `AbortController` signal into the operation directly — specifically because nothing in the language forces this concern to be handled by default, and an application that omits it can have requests silently piling up, each one waiting indefinitely on a remote side that will never respond.",
+        ],
+      },
+      {
+        h: 'Retry logic: the other half of handling failure well',
+        p: [
+          "Catching a rejected promise stops a failure from crashing the program, but for a meaningful class of async failures — a transient network blip, a downstream service that is briefly overloaded — the actually correct response is not just to log the error but to retry the operation, and doing that well requires more care than a naive immediate retry loop provides: retrying instantly and repeatedly against a service that is failing because it is overloaded can make the overload measurably worse, which is why real retry logic almost always incorporates exponential backoff, waiting progressively longer between attempts, along with a hard cap on the total number of retries so a genuinely permanent failure does not retry forever.",
+        ],
+      },
+      {
+        h: 'Why a `finally` block matters more in async code than it first appears',
+        p: [
+          "A `finally` block attached to a `try`/`catch` around awaited code runs regardless of whether the awaited operation succeeded, failed, or even if the function returned early from inside the `try` block, which makes it the natural place to put cleanup that absolutely must happen either way — closing a database connection, releasing a lock, hiding a loading spinner. Async code makes this more error-prone to get right without `finally` than synchronous code does, specifically because there are more distinct paths an async function can take through failure — a rejection at any one of several awaited steps — and manually duplicating the same cleanup logic in both the success path and every possible catch path is exactly the kind of repetition that quietly drifts out of sync the first time only one of the copies gets updated.",
+        ],
+      },
+      {
+        h: 'Async errors that never touch a try/catch at all',
+        p: [
+          "Not every asynchronous failure surfaces through a promise rejection at all — an event emitter that emits an `'error'` event, for instance, follows an entirely different, older error-signaling convention than promises do, and code written expecting every async failure to eventually land in a `catch` block will simply never see an error surfaced this other way, silently missing it rather than mishandling it. Robust async error handling in a real codebase, especially one mixing older event-based APIs with newer promise-based ones, means knowing which convention a given API actually uses rather than assuming every asynchronous failure will conveniently arrive through the same mechanism.",
+        ],
+      },
+      {
+        h: 'Circuit breakers: what retry logic needs once failures become sustained',
+        p: [
+          "Retrying with backoff handles a transient failure well, but a downstream dependency that is genuinely down for an extended period turns naive retries into their own quiet problem: every caller keeps retrying, keeps waiting out its backoff, and keeps consuming resources on doomed attempts, at exactly the moment the failing dependency could most use everyone backing off entirely instead. The circuit breaker pattern addresses this by tracking recent failure rates and, once a threshold is crossed, failing fast without even attempting the call for a cooldown period, then cautiously allowing a small number of test requests through to check whether the dependency has recovered before resuming normal traffic — a distinct, complementary strategy to retry-with-backoff rather than a replacement for it.",
+        ],
+      },
+      {
+        h: 'Idempotency: what makes a retry safe to attempt at all',
+        p: [
+          "Retrying a failed operation is only safe if repeating it does not cause harm beyond what the first attempt would have — an operation that charges a payment is not automatically safe to retry, because the original attempt may have actually succeeded on the server side even though the response was lost, and blindly retrying could charge twice; the standard fix is an idempotency key, a client-generated identifier sent with the request that lets the server recognize and safely ignore a duplicate attempt of the same logical operation.",
+        ],
+      },
+      {
+        h: 'Logging errors with enough context to actually act on them',
+        p: [
+          "Catching an async error and logging only its message, without the surrounding context of which operation was in progress, which user or request triggered it, and what inputs were involved, produces a log line that confirms something failed without giving anyone a realistic path to diagnosing why — the same discipline that applies to structured logging generally applies with extra force to async error handlers specifically, since they are often the last point in the code where that contextual information is still conveniently in scope.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'understanding-async-await',
+    sections: [
+      {
+        h: 'Reads top to bottom, but does not run top to bottom',
+        p: [
+          "The specific confusion async/await produces, more than either callbacks or raw promises, comes from how convincingly synchronous it looks: a function body with several `await` statements in sequence reads exactly like a script that runs one line, then the next, in the order written on the page. What is actually happening underneath is that each `await` yields control back to the event loop and the rest of the function's body is registered as a continuation to resume once that specific promise settles — the illusion of sequential execution is real in the sense that the results genuinely do become available in that order, but it is not real in the sense that the JavaScript engine is not sitting there, blocked, waiting between lines the way it would be in a genuinely synchronous language. Other code on the same thread runs during every single `await`, which is invisible from reading the function alone but is exactly what makes this model useful in the first place.",
+        ],
+      },
+      {
+        h: 'Where execution actually goes during an await',
+        p: [
+          "When an `async` function hits an `await`, execution of that function pauses at exactly that point and control returns immediately to whatever called it, which continues running its own next line of code without waiting. If that caller was itself the top-level script or another async function that is not itself being awaited by anyone yet, control eventually returns to the event loop, which is then free to process any other pending work — another request, another timer, another I/O completion — until the awaited promise settles and the paused function's continuation is placed back on the microtask queue to resume exactly where it left off. This is the mechanism, made concrete, behind the more abstract claim that 'async/await does not block the thread' — it is not a special property of the syntax, it is exactly what a promise-based `.then()` chain does, wearing syntax that hides the chaining.",
+        ],
+      },
+      {
+        h: "The most common footgun: 'await' inside a loop that should have run in parallel",
+        p: [
+          "A `for` loop with `await` inside it — `for (const url of urls) { results.push(await fetch(url)); }` — is a strong candidate for the single most common async/await performance mistake, because it reads as ordinary, correct-looking code and produces correct output, just slower than necessary: each fetch waits for the previous one to fully complete before starting the next, turning what could have been one round trip's worth of wall-clock time (if the requests are actually independent) into the sum of every individual request's time, one after another. Recognizing this requires actively asking, for every `await` written inside a loop, whether this iteration genuinely depends on the previous one's result — if not, `Promise.all(urls.map(url => fetch(url)))` starts every request at once and is very often a straightforward, meaningful performance win sitting in code that otherwise looks completely fine.",
+        ],
+      },
+      {
+        h: 'Top-level await and why it took years to standardize',
+        p: [
+          "For most of async/await's history, the keyword could only appear inside a function explicitly marked `async` — using it at a script's top level, outside any function, was a syntax error, which meant any genuinely top-level asynchronous setup (waiting for a database connection before the rest of a module could run, for instance) had to be wrapped in an immediately-invoked async function purely to gain access to the keyword. Top-level await, standardized more recently in ECMAScript modules, removes that requirement, letting a module pause its own evaluation at the top level while an import or setup step resolves — a small ergonomic change on its face, but one that took real specification work, because letting a module's own loading pause on an asynchronous operation has non-trivial implications for how and when the modules that depend on it are allowed to continue their own loading.",
+        ],
+      },
+      {
+        h: 'Debugging async stack traces: the gap async/await mostly closed',
+        p: [
+          "One of the more concrete practical improvements async/await brought over raw callback and promise-chain code is stack trace quality: an error thrown inside an `await`-based function generally preserves a stack trace pointing back through the logical call chain a developer actually wrote, whereas an error surfacing from deep inside a callback chain often shows a stack trace dominated by internal event-loop and I/O-scheduling machinery, with little or no trace of the actual application-level call sequence that led there. This is not an accident of syntax alone; modern JavaScript engines specifically optimized stack trace capture for the async/await pattern precisely because it became the dominant style, which is a case where a language feature's popularity fed back into engine-level investment that made the feature itself meaningfully more debuggable over time.",
+        ],
+      },
+      {
+        h: 'Why "async" always returns a promise, even from a plain return statement',
+        p: [
+          "Marking a function `async` changes its return semantics unconditionally, even if the function body never actually awaits anything: an `async` function that simply does `return 5` does not return the number 5 directly to its caller, it returns a promise that resolves to 5, and calling code has to `await` it or attach a `.then()` to actually get the value out. This is easy to miss because such a function can look, at a glance, exactly like an ordinary synchronous one, and forgetting that its return value is wrapped is a small but genuinely common source of bugs — comparing the return value directly against 5 rather than against the promise it actually is, for instance, silently fails rather than throwing an obvious error.",
+        ],
+      },
+      {
+        h: 'Async functions and the arguments they cannot un-await',
+        p: [
+          "Passing an unresolved promise into a function that expects a plain value, rather than awaiting it first, is a mistake the language mostly does not protect against by itself, because a promise is a perfectly ordinary object as far as most JavaScript code is concerned — it can be stored, passed around, and logged without complaint, and only actually using it as though it already held its resolved value reveals the mistake, usually much later and further from the original call site than where the missing `await` actually belongs. Reading a function signature carefully to notice which of its parameters are documented or typed as promises, rather than assuming a value is already resolved just because it is being passed around like one, is the discipline that catches this class of bug at the point it is introduced rather than several layers downstream where it finally causes something visibly wrong.",
+        ],
+      },
+      {
+        h: 'Sequential dependency versus sequential code: two different reasons to await in order',
+        p: [
+          "Code that awaits several operations one after another is not automatically a performance mistake — it is entirely correct and necessary when each step genuinely depends on the result of the one before it, fetching a user record and then fetching that specific user's orders using the ID the first call returned. The mistake discussed earlier in this cluster of articles is specifically awaiting independent operations sequentially, ones that do not actually need each other's results at all; distinguishing the two cases is a matter of asking, for each `await`, whether the next line genuinely needs a value the current one produced, or whether it merely happens to be written afterward in the source and could just as correctly have started at the same time.",
+        ],
+      },
+      {
+        h: 'What "async" does not do: it never makes anything faster on its own',
+        p: [
+          "A common misreading of async/await treats it as a performance feature in its own right — marking a function `async` does nothing whatsoever to make the work inside it complete any faster; it changes how the waiting is handled, not how long the underlying operation actually takes. Wrapping a slow database query in an `async` function does not speed the query up by a single millisecond; what it changes is that the thread is free to do other useful work while that same slow query is still pending, rather than sitting idle. Confusing 'does not block other work' with 'runs faster' leads to real disappointment when a single, isolated `await`-based operation is timed on its own and shows no improvement at all — the benefit of this model shows up in overall throughput under concurrent load, not in the latency of any one individual operation measured in isolation.",
+        ],
+      },
+      {
+        h: 'Why linters specifically check for missing await',
+        p: [
+          "Given how quietly a missing `await` fails, most modern JavaScript and TypeScript linting setups include a rule specifically dedicated to flagging a floating, unhandled promise — a call to an async function whose result is neither awaited, returned, nor explicitly assigned and disposed of — precisely because this class of bug produces no runtime error at the point it is introduced and is otherwise easy for even an experienced developer to miss during ordinary code review.",
+        ],
+      },
+      {
+        h: 'Why "await" on a non-promise value is still valid, and rarely useful',
+        p: [
+          "Awaiting a plain value that is not a promise at all — `await 5` — is syntactically legal and simply resolves immediately to that same value on the next microtask tick, which is a harmless but easy-to-overlook detail: it means a function can safely await something that might or might not actually be a promise without needing to check first, though relying on this behavior as an actual pattern rather than an occasional convenience tends to make code less clear about what is genuinely asynchronous and what is not.",
+        ],
+      },
+    ],
+  },
 ];
 
 /**
