@@ -4574,6 +4574,520 @@ export const EXPANSIONS: Expansion[] = [
       },
     ],
   },
+  // ── web performance: six articles, six directions ─────────────────────────
+  {
+    slug: 'why-your-web-page-is-slow',
+    sections: [
+      {
+        h: "LCP: what actually counts as the largest element, and why that changes over a page's life",
+        p: [
+          "Largest Contentful Paint measures the render time of the largest image or text block visible within the viewport, and the specific element it measures is not fixed for a page's entire load — as more content streams in, a larger element can appear and become the new LCP candidate, replacing whatever was previously the largest, which is why LCP is reported as the final, largest element once the page has settled rather than the first large thing to render. A common, avoidable LCP problem is a hero image loaded without any priority hint, competing for bandwidth with dozens of lower-priority resources the browser has no reason to know matter less.",
+        ],
+      },
+      {
+        h: 'INP: the successor metric measuring responsiveness after the page has loaded',
+        p: [
+          "Interaction to Next Paint replaced First Input Delay as the standard responsiveness metric specifically because FID only measured the delay before the browser began processing the very first interaction, saying nothing about how long the resulting visual update actually took, or about any interaction after the first one — INP instead measures the full latency of every interaction throughout a page's lifetime and reports the worst one, capturing exactly the kind of janky, unresponsive click that FID's narrower definition could miss entirely. A page can post an excellent FID while still feeling sluggish to actually use, which is the specific gap INP was introduced to close.",
+        ],
+      },
+      {
+        h: 'CLS: why layout shift is measured as a score, not a binary pass or fail',
+        p: [
+          "Cumulative Layout Shift accumulates a numeric score across every unexpected layout movement during a page's life, weighting each shift by both how much of the viewport moved and how far it moved, rather than simply counting the number of shifts — this is why a single large, jarring shift and several small, barely noticeable ones can produce a similar score, and why the fix is not merely 'have fewer shifts' but specifically reserving space for anything whose final size is not yet known when it starts rendering, such as an image with no explicit width and height attribute or an ad slot that resizes once its content actually loads.",
+        ],
+      },
+      {
+        h: 'Why lab data and field data can disagree, and which one to trust for which decision',
+        p: [
+          "A score measured in a controlled lab environment, run once under fixed network and device conditions, is reproducible and useful for debugging a specific change, but it does not reflect the actual range of real devices and network conditions actual visitors use — field data, collected from real users' actual browsers via the Chrome User Experience Report or a site's own real-user-monitoring setup, reflects true visitor experience but is noisier and cannot be attributed to a specific isolated change as cleanly. Using lab data to debug and verify a specific fix, and field data to confirm that fix actually improved the metric for real visitors afterward, uses each source for what it is actually good at rather than treating either as sufficient on its own.",
+        ],
+      },
+      {
+        h: "Why TTFB is a server-side metric hiding inside a client-side scorecard",
+        p: [
+          "Time to First Byte measures how long the browser waits before receiving even the first byte of the response, which is almost entirely a function of server-side processing time and network latency to the server, not anything about the page's own frontend code — a page with an excellent LCP and CLS can still feel slow overall if TTFB is high, because every other metric in this article can only start its own clock once the response has actually begun arriving, which is why a genuinely comprehensive performance investigation checks server response time first, before assuming a slow page is necessarily a frontend problem.",
+        ],
+      },
+      {
+        h: "Why field data segments matter more than a single aggregate number",
+        p: [
+          "A single averaged or even median Core Web Vitals number across all visitors can hide a real, meaningful problem affecting a specific segment — mobile users on a slow connection, visitors in a specific region far from the nearest server — while the aggregate looks perfectly acceptable; breaking field data down by device type, connection speed, and geography, rather than trusting one blended number, is what actually reveals whether a specific, addressable segment is having a meaningfully worse experience than the overall number would ever suggest on its own.",
+        ],
+      },
+      {
+        h: "Why a fast page can still feel slow, and vice versa",
+        p: [
+          "Perceived speed and measured speed diverge in specific, well-documented ways — a page that shows a skeleton loading state immediately, even while the real content is still fetching, is frequently perceived as faster than a page with a slightly better raw LCP number but a blank screen right up until content suddenly appears, because a visible, immediate response to a user's action matters to perception independently of the raw timing numbers underneath it, which is why perceived performance is worth designing for deliberately, not assumed to follow automatically from optimizing the measured metrics alone.",
+        ],
+      },
+      {
+        h: "Why mobile performance deserves its own dedicated measurement, not an assumption",
+        p: [
+          "A page tested only on a developer's own fast desktop machine over a fast office connection can look perfectly fine while performing considerably worse for the actual majority of visitors on a mid-range phone over a real mobile network — testing explicitly under throttled, mobile-representative conditions rather than assuming desktop results generalize is what actually reveals whether the metrics discussed throughout this article hold up for the visitors most likely to be affected by a slow page in the first place.",
+        ],
+      },
+      {
+        h: "Why the same page can score differently minute to minute in a lab test",
+        p: [
+          "A lab test run twice in a row against the identical, unchanged page can still produce slightly different numbers, because the testing machine's own CPU load, background processes, and network conditions vary run to run even under nominally controlled settings — this is precisely why serious performance testing runs several iterations and looks at the median rather than trusting any single run, treating one measurement in isolation the way one would treat any noisy real-world signal rather than an exact, deterministic number.",
+        ],
+      },
+      {
+        h: "Why a single slow third-party script can dominate every other optimization",
+        p: [
+          "A team can spend weeks optimizing its own first-party code — compressing images, splitting bundles, tuning cache headers — only to have a single slow third-party analytics or advertising script continue dragging every Core Web Vital down regardless, since that script is entirely outside the team's own control and update schedule; auditing third-party scripts specifically, and being willing to remove or defer ones that are not earning their real performance cost, is frequently a higher-leverage fix than another round of first-party optimization once the easy first-party wins have already been captured.",
+        ],
+      },
+      {
+        h: "Why fixing the metric directly sometimes misses the actual user complaint",
+        p: [
+          "It is possible to improve every Core Web Vital measurably while users continue reporting the page feels slow, if the actual friction they are experiencing is something the standard metrics do not directly capture — a slow search results update, a laggy dropdown, a delay specific to one interaction the aggregate page-load metrics were never designed to isolate; treating user-reported slowness as its own signal worth investigating directly, rather than assuming it must already be reflected in whichever standard metric is being tracked, catches problems the standard metric set simply was not built to measure.",
+        ],
+      },
+      {
+        h: "Why alerting on Core Web Vitals needs its own sensible thresholds, not generic ones",
+        p: [
+          "Google publishes general guidance for what counts as a 'good', 'needs improvement', or 'poor' score for each Core Web Vital, but a site's own alerting thresholds are worth tuning against its own historical baseline and actual business impact rather than adopting the generic guidance uncritically — a site that has always scored in the 'needs improvement' range for a metric that does not meaningfully affect its specific user behavior may reasonably deprioritize chasing the generic 'good' threshold in favor of a metric more directly tied to its own measured business outcomes.",
+        ],
+      },
+      {
+        h: "Why the highest-return fix is usually the simplest, most boring one",
+        p: [
+          "Teams new to performance work often reach first for the most sophisticated available technique — a custom rendering strategy, an elaborate build pipeline change — when the actual highest-return fix on a given page is frequently something unglamorous: compressing an oversized image, removing an unused third-party script, or fixing a missing width and height attribute, all of which cost little effort and often move the needle more than a sophisticated technique applied to a page that never had the underlying problem that technique was built to solve.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'the-science-of-optimizing-web-performance',
+    title: 'Measuring Web Performance Properly: Lab Tools, Field Data and Budgets',
+    excerpt:
+      "Knowing that a page is slow is not the same as knowing why, or by how much a given fix actually helped. The tools and methodology for measuring performance rigorously, rather than by eyeballing a loading spinner.",
+    sections: [
+      {
+        h: 'How Lighthouse actually produces its score under the hood',
+        p: [
+          "Lighthouse runs a page load in a controlled, automated instance of Chrome, simulating a specific network speed and device CPU profile rather than measuring on whatever hardware happens to be running the tool, which is precisely what makes its results reproducible from one run to the next — the overall performance score is a weighted combination of several individual metrics, not a single measurement, and the specific weights (historically favoring metrics like Largest Contentful Paint and Total Blocking Time more heavily than others) periodically change as the tool's maintainers update what they consider the best proxy for genuine user-perceived speed.",
+        ],
+      },
+      {
+        h: 'Why a waterfall chart is the actual diagnostic tool, not just the summary score',
+        p: [
+          "Tools like WebPageTest and the browser's own network panel produce a waterfall chart, showing every network request as a horizontal bar positioned by when it started and how long it took, stacked against every other request — reading this chart for the specific gaps, requests that start much later than they could have, or requests blocking others that did not actually need to wait for them, is where the real diagnostic work happens, since the single overall score tells a team that something is slow without pointing at which specific request or dependency chain is actually responsible.",
+        ],
+      },
+      {
+        h: 'Performance budgets: turning a one-time audit into an ongoing constraint',
+        p: [
+          "A performance audit run once, right before a deploy, catches regressions introduced up to that point but does nothing to prevent new ones from creeping back in afterward — a performance budget sets an explicit, numeric limit (a maximum bundle size, a maximum LCP time) that a CI pipeline checks automatically on every subsequent change, failing the build if a change would push a tracked metric past its budget, which turns performance from a periodic audit exercise into a continuously enforced constraint the same way an automated test suite continuously enforces correctness.",
+        ],
+      },
+      {
+        h: 'Why synthetic monitoring and real-user monitoring answer different ongoing questions',
+        p: [
+          "Beyond one-off lab testing, synthetic monitoring runs the same automated test on a fixed schedule from fixed locations, catching a regression the moment it is deployed regardless of whether any real user has encountered it yet, while real-user monitoring collects actual performance data from real visitors' own browsers, revealing how the site performs across the actual diversity of devices, networks, and geographic locations a lab test can never fully replicate — a mature performance practice runs both continuously, using synthetic monitoring's speed to catch regressions early and real-user monitoring's breadth to confirm what visitors are actually experiencing in practice.",
+        ],
+      },
+      {
+        h: "Why a performance regression test needs a stable, controlled comparison baseline",
+        p: [
+          "Comparing today's Lighthouse score against yesterday's is only meaningful if both runs used the same network throttling profile, the same device CPU simulation, and ideally the same testing infrastructure, since a run on an unexpectedly busy CI machine can produce a worse score for reasons that have nothing to do with any actual code change — this is why serious continuous performance monitoring runs on dedicated, consistently provisioned infrastructure rather than shared, variable-load CI runners, precisely to keep the comparison baseline stable enough that a detected regression can be trusted as real rather than dismissed as test noise.",
+        ],
+      },
+      {
+        h: "Why the score alone never tells a team which fix to prioritize next",
+        p: [
+          "A Lighthouse report lists individual audit failures alongside the overall score, and prioritizing which one to fix first requires estimating the actual expected time-savings each specific fix would produce, not simply working through the list in whatever order the tool happens to present it — a large image failing an audit but rarely actually viewed by real users is a lower priority than a smaller optimization on the single most-visited page on the site, which is exactly why raw audit output benefits from being cross-referenced against real traffic data before deciding what to actually work on next.",
+        ],
+      },
+      {
+        h: "Why a performance culture needs a visible dashboard, not just an occasional report",
+        p: [
+          "A performance audit produced once and filed away rarely changes a team's day-to-day decisions, while a dashboard showing current metrics continuously, visible to the whole team rather than consulted only during a dedicated audit, keeps performance a live, ongoing consideration rather than a periodic afterthought revisited only when something has already gotten bad enough to notice without any tooling at all.",
+        ],
+      },
+      {
+        h: "Why a single-page performance test rarely represents an entire site",
+        p: [
+          "Running Lighthouse against only a site's homepage and generalizing the result to the whole site misses meaningful variation — a product listing page with dozens of images, or a checkout flow with heavy third-party scripts, can perform very differently from the homepage alone, which is why a genuinely representative performance testing setup samples several distinct page templates across a site rather than treating one page's score as a proxy for every page's actual experience.",
+        ],
+      },
+      {
+        h: "Why comparing scores across different tools rarely makes sense directly",
+        p: [
+          "PageSpeed Insights, WebPageTest, and Lighthouse run on somewhat different methodologies and default configurations, which means the same page can legitimately receive different scores from each — treating one tool's number as directly comparable to another's, rather than picking one tool as the consistent reference point for tracking a specific page's trend over time, produces confusion that has nothing to do with any actual change in the page's real performance.",
+        ],
+      },
+      {
+        h: "Why a good performance culture treats a regression alert the same way it treats a failing test",
+        p: [
+          "A performance budget check failing in CI deserves the same immediate, blocking attention a failing unit test would get, not a note to look at later once things calm down — teams that treat a performance regression as optional, nice-to-fix-eventually feedback rather than a genuine blocker tend to accumulate exactly the kind of slow, gradual performance decay that periodic full audits are needed to catch after the fact, defeating much of the purpose of having continuous budget enforcement in the first place.",
+        ],
+      },
+      {
+        h: "Why sharing performance data across teams changes how seriously it gets treated",
+        p: [
+          "A performance dashboard visible only to the engineering team tends to stay an engineering concern alone, while the same data shared visibly with product and business stakeholders — framed in terms they care about, like conversion rate correlated against load time — tends to secure the organizational priority performance work otherwise competes for against more visibly feature-shaped work, since a number nobody outside engineering ever sees rarely wins a resourcing argument against a shipped feature that is visibly, immediately valuable to someone.",
+        ],
+      },
+      {
+        h: "Why a performance win on paper does not always translate to a measurable field improvement",
+        p: [
+          "A lab-measured improvement to a specific metric does not guarantee a matching improvement in real-user field data, since field data aggregates across an enormous range of real devices and conditions a single lab configuration cannot represent — confirming a shipped optimization actually moved the needle in field data, not just in the lab test that motivated it, is the step that closes the loop and avoids a team quietly accumulating optimizations that looked good in isolated testing without ever verifying they mattered for real visitors at all.",
+        ],
+      },
+      {
+        h: "Why methodology discipline matters more than any single tool's specific features",
+        p: [
+          "The specific tools covered throughout this article will keep changing — new versions, new competitors, deprecated features — but the underlying methodology they all serve stays stable: measure consistently, distinguish lab from field data, set explicit budgets, and enforce them continuously rather than periodically, which is the actual durable skill worth building, considerably more durable than expertise in any one tool's current feature set.",
+        ],
+      },
+      {
+        h: "Why a shared vocabulary between engineering and product prevents a common miscommunication",
+        p: [
+          "\"The site is slow\" means something different to a product manager watching bounce rate and an engineer watching a Lighthouse score, and a team that has not agreed on shared, specific terms for its own key metrics tends to talk past each other during exactly the conversations where alignment matters most — establishing a common, specific vocabulary early, tied to the concrete metrics this cluster of articles describes, prevents a surprising amount of wasted back-and-forth during incident discussions and planning meetings alike.",
+        ],
+      },
+      {
+        h: "Why revisiting old audits periodically catches drift a one-time budget misses",
+        p: [
+          "A performance budget enforced continuously in CI catches new regressions the moment they are introduced, but it does not automatically catch a slow, gradual drift in a metric that never actually crosses the configured budget threshold on any single change — periodically rerunning a full audit, comparing against the audit from several months prior rather than only the immediately preceding commit, catches exactly this kind of slow accumulation that a per-commit budget check, by design, is not built to notice.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'render-blocking-resources',
+    sections: [
+      {
+        h: 'Why the browser blocks on CSS specifically, and why that is a deliberate choice',
+        p: [
+          "A stylesheet blocks rendering because the browser cannot safely paint any content without first knowing how it should look — rendering unstyled content and then immediately restyling it once CSS arrives would produce a visible, jarring flash as the page's appearance changes right in front of the user, which browsers deliberately avoid by holding off on the first paint until CSS in the current render path has been fully parsed and applied, treating a blank screen as a better experience than an ugly, briefly-unstyled flash.",
+        ],
+      },
+      {
+        h: 'Why scripts without async or defer block HTML parsing entirely, not just rendering',
+        p: [
+          "A plain `<script>` tag with no attribute at all does something more disruptive than blocking rendering: it pauses the HTML parser itself at the exact point the script tag appears, fetches the script if it is external, executes it fully, and only then resumes parsing the rest of the document — this happens because a script can call `document.write()` or otherwise modify the page in ways that would invalidate whatever the parser has already built if it kept going, so the specification requires this synchronous pause as a safety guarantee, which is exactly what `async` and `defer` exist to opt out of when a script does not actually need it.",
+        ],
+      },
+      {
+        h: "Async versus defer: same non-blocking parse, different execution timing",
+        p: [
+          "Both attributes let the HTML parser continue without pausing while the script downloads in the background, but they differ in exactly when the downloaded script actually runs: an `async` script executes the moment it finishes downloading, whenever that happens to be relative to the rest of parsing, which can interrupt parsing at an arbitrary, unpredictable point; a `defer` script always waits until the entire HTML document has finished parsing before running, in the exact order the defer scripts appear in the markup — which is why `defer` is generally the safer default for scripts with dependencies on the DOM or on each other's execution order, while `async` suits independent scripts, like analytics snippets, that do not care when exactly they run relative to anything else.",
+        ],
+      },
+      {
+        h: 'Critical CSS: shipping only what the very first paint actually needs',
+        p: [
+          "A large, comprehensive stylesheet covering every page on a site blocks the very first render on styles that may not even apply to anything currently visible above the fold — the critical CSS technique extracts specifically the styles needed for the initial visible viewport, inlines that small subset directly into the page's `<head>` so it needs no separate network request at all, and loads the remaining, larger stylesheet asynchronously afterward for everything below the fold, trading a small amount of build-time tooling complexity for a first paint that is no longer gated on downloading and parsing styles the very first screen does not actually need.",
+        ],
+      },
+      {
+        h: "Why `<link rel=\"preload\">` exists alongside async and defer",
+        p: [
+          "Preloading tells the browser to start fetching a specific resource immediately, at a high priority, well before the parser would otherwise discover it — useful specifically for a resource the browser would not find until relatively late in parsing, like a font referenced only inside a stylesheet that has not finished downloading yet, or a hero image referenced via CSS `background-image` rather than an `<img>` tag the parser can see directly. This is a different tool from async or defer, which control when a discovered script executes; preload controls when the fetch itself begins, and the two concerns are frequently combined for the same resource in a well-tuned page.",
+        ],
+      },
+      {
+        h: "Why third-party scripts are disproportionately likely to be the actual blocking culprit",
+        p: [
+          "An analytics tag, a chat widget, an ad script — none of these are usually written with the same performance discipline a team applies to its own first-party code, and a third-party script loaded without async or defer can block rendering just as thoroughly as any first-party script would, while being considerably harder to fix, since the actual source code is not under the site's own control at all; auditing exactly which third-party scripts are marked async or defer, and whether any of them are genuinely necessary to load before first paint at all, is frequently the single highest-leverage fix available on a page dominated by third-party embeds.",
+        ],
+      },
+      {
+        h: "Why font loading has its own distinct blocking behavior worth knowing separately",
+        p: [
+          "A custom web font referenced in CSS does not block the initial render the way a render-blocking stylesheet does, but it can cause its own distinct problem — invisible text while the font downloads, or a visible flash as fallback text is replaced once the real font arrives — and the `font-display` CSS property controls exactly how this trade-off is handled, letting a page choose between showing fallback text immediately (`swap`) or holding text invisible briefly to avoid any visible font-swap flash (`block`), a choice worth making deliberately rather than accepting whichever a browser's own unconfigured default happens to be.",
+        ],
+      },
+      {
+        h: "Why inlining small stylesheets entirely can sometimes beat even the critical-CSS technique",
+        p: [
+          "For a small site with a genuinely small total CSS footprint, inlining the entire stylesheet directly into the HTML document removes the separate network request for it altogether, which can be simpler and just as fast as extracting a critical subset the more elaborate technique described earlier requires — critical CSS extraction earns its added build complexity specifically once a stylesheet has grown too large to inline in full without itself becoming a meaningful part of the initial HTML payload's size.",
+        ],
+      },
+      {
+        h: "Why the order of stylesheet and script tags in the head still matters even with async and defer",
+        p: [
+          "Even once scripts are correctly marked async or defer, render-blocking stylesheets still execute in the order they appear, and placing a large, rarely-needed stylesheet before a small, critical one delays the critical one's application for no good reason — ordering resource tags deliberately, smallest and most critical first, is a nearly free optimization that costs nothing but rearranging existing markup.",
+        ],
+      },
+      {
+        h: "Why removing an unused stylesheet entirely beats optimizing its loading",
+        p: [
+          "Before reaching for async loading, critical CSS extraction, or careful tag ordering, it is worth confirming a given stylesheet is actually still needed at all — tools that detect unused CSS selectors across a site's actual pages routinely reveal that a meaningful fraction of a large stylesheet is dead weight from a redesign or feature nobody removed, and deleting that unused portion outright is both simpler and more effective than any technique for loading the same bloated file more cleverly.",
+        ],
+      },
+      {
+        h: "Why a single build tool setting sometimes ships render-blocking code by accident",
+        p: [
+          "Modern bundlers can inadvertently produce a single, large combined CSS or JavaScript file spanning every route in an application rather than splitting per-page, which means visiting even the simplest page on a site can still block on downloading and parsing code needed only by an entirely different, unrelated page — checking a build's actual output for this kind of accidental over-bundling is worth doing explicitly, since it is a common, silent source of render blocking that has nothing to do with any of the markup-level techniques covered elsewhere in this article.",
+        ],
+      },
+      {
+        h: "Why HTTP/2 server push was tried and largely abandoned for this exact problem",
+        p: [
+          "Server push, an HTTP/2 feature letting a server proactively send resources it expects a client will need before the client has even requested them, was proposed partly as a solution to render-blocking resource delays, but it was largely deprecated in major browsers after real-world use revealed it frequently pushed resources the browser's own cache already had, wasting bandwidth rather than saving time — the preload technique discussed earlier in this article achieves a similar goal more reliably, since it lets the client itself decide, with full knowledge of its own cache state, whether a fetch is actually needed.",
+        ],
+      },
+      {
+        h: "Why a render-blocking audit should be part of every major redesign, not a one-time cleanup",
+        p: [
+          "A page carefully tuned to minimize render-blocking resources can quietly regress the very next time a redesign adds a new third-party widget or a new stylesheet without anyone revisiting the original optimization work — building a render-blocking check into a standard pre-launch checklist for every major page change, rather than treating the original optimization as a one-time project now considered finished, is what keeps the gains from eroding silently over subsequent redesigns.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'lazy-loading-images',
+    sections: [
+      {
+        h: "The native `loading=\"lazy\"` attribute versus a hand-rolled implementation",
+        p: [
+          "Modern browsers support a native `loading=\"lazy\"` attribute directly on `<img>` tags, deferring that image's load until it is near the viewport without any JavaScript at all, which is simpler and more broadly compatible than the JavaScript-based approach lazy loading originally required — the trade-off is less fine-grained control over exactly how far in advance loading begins, or exactly what counts as 'near' the viewport, which is precisely the control a JavaScript-based Intersection Observer implementation still offers for cases where the native attribute's simpler, less tunable behavior is not quite sufficient.",
+        ],
+      },
+      {
+        h: 'Why the Intersection Observer API replaced scroll-event-based lazy loading entirely',
+        p: [
+          "Before Intersection Observer existed, detecting whether an image had scrolled into view required listening to the scroll event directly and manually calculating each image's position relative to the viewport on every single fired event — which, given how frequently scroll events fire, was itself a meaningful performance cost, precisely the kind of thing throttling and debouncing, discussed elsewhere in this library, exist to control. Intersection Observer moved this calculation into the browser's own optimized internals, notifying application code only when an element's visibility relative to the viewport actually crosses a defined threshold, which is both simpler to write correctly and considerably cheaper to run than the manual scroll-event approach it replaced.",
+        ],
+      },
+      {
+        h: 'Why the very first images should never be lazy loaded at all',
+        p: [
+          "Applying lazy loading uniformly to every image on a page, including ones already visible in the initial viewport, actively hurts performance rather than helping it — an above-the-fold image marked lazy is deferred from loading until the lazy-loading mechanism confirms it is visible, which, depending on implementation, can add a small but real delay compared to simply letting the browser start fetching it immediately the way it always has; lazy loading should be applied specifically and only to images below the fold, which is exactly the subset of a page it was designed to help.",
+        ],
+      },
+      {
+        h: 'Placeholder strategies: what fills the space before the real image arrives',
+        p: [
+          "An image that has not loaded yet still needs to reserve its final layout space to avoid contributing to the layout shift problem covered elsewhere in this library, and several distinct strategies exist for what fills that reserved space in the meantime — a plain solid color matching the image's dominant tone, a tiny, heavily blurred low-resolution version of the actual image (the 'blur-up' technique), or simply an empty, explicitly sized box — each trading a small amount of extra complexity or a tiny additional payload for a visually smoother transition once the real image actually finishes loading.",
+        ],
+      },
+      {
+        h: "Lazy loading video and iframes, not just images",
+        p: [
+          "The same native `loading=\"lazy\"` attribute and Intersection Observer techniques apply just as directly to `<iframe>` elements — an embedded video player or map widget below the fold is exactly as wasteful to load eagerly as an off-screen image would be, and often considerably heavier, since an embedded iframe frequently pulls in its own separate bundle of scripts and stylesheets the moment it loads regardless of whether the image inside it has rendered yet.",
+        ],
+      },
+      {
+        h: "Why lazy loading interacts awkwardly with browser print and 'find in page' features",
+        p: [
+          "An image that has never scrolled into view, and is therefore never loaded, will not appear when a user prints the page or uses the browser's built-in find-in-page feature to search for text that happens to be near that image, which is a real, if easily overlooked, trade-off — some lazy-loading implementations specifically listen for the print event and eagerly load every remaining deferred image at that moment, closing this gap for the printing case specifically, though the find-in-page limitation is harder to fully eliminate since it depends on content, not just images, actually being present in the rendered page at the moment of the search.",
+        ],
+      },
+      {
+        h: "Why responsive images and lazy loading solve two different, complementary problems",
+        p: [
+          "The `srcset` and `sizes` attributes let a browser choose an appropriately sized image variant for the current viewport and device pixel density, avoiding downloading a needlessly large image on a small screen, while lazy loading controls when an image downloads at all rather than which specific size it downloads — combining both is straightforward and common, since they address entirely independent dimensions of the same underlying image-loading cost, and applying only one while ignoring the other leaves real, easily captured savings on the table.",
+        ],
+      },
+      {
+        h: "Why background images referenced only in CSS need their own lazy-loading approach",
+        p: [
+          "The native `loading=\"lazy\"` attribute only applies to `<img>` and `<iframe>` elements, not to images referenced via CSS `background-image`, which means a design relying heavily on CSS background images for its off-screen content needs a JavaScript-based Intersection Observer approach instead — typically swapping a placeholder CSS class for one that sets the real background-image URL once the element scrolls into view, since there is currently no purely declarative, native equivalent covering this specific case.",
+        ],
+      },
+      {
+        h: "Why a lazy-loaded image inside a carousel needs special handling",
+        p: [
+          "A carousel or slider that keeps several slides in the DOM simultaneously, only some of them visually shown at a time, complicates naive lazy loading, since a slide sitting just outside the visible viewport technically is not yet 'visible' by a simple Intersection Observer check even though a user could bring it into view within a fraction of a second by clicking a next-slide arrow — carousel implementations typically widen the loading threshold specifically for adjacent slides, loading the next slide slightly ahead of when it becomes strictly visible so it does not visibly pop in during the transition.",
+        ],
+      },
+      {
+        h: "Why testing lazy loading requires simulating scroll behavior, not just checking initial load",
+        p: [
+          "A test suite that only verifies a page's initial, unscrolled state can pass completely while a broken lazy-loading implementation silently fails to ever load any off-screen image at all, since the bug only manifests once a user actually scrolls — automated visual or end-to-end tests for a lazy-loading feature need to explicitly simulate scrolling to the relevant point in the page and then assert the expected image has actually loaded, rather than only checking whatever is present in the very first rendered frame.",
+        ],
+      },
+      {
+        h: "Why a lazy-loaded image's alt text still matters before it ever loads",
+        p: [
+          "A screen reader announces an image's alt text regardless of whether the image itself has actually finished loading, which means lazy loading does not excuse omitting or delaying meaningful alt text — accessibility depends on that text being present in the markup from the very first render, exactly as it would for an eagerly loaded image, since a user relying on assistive technology should never have a materially different experience of a page's content just because its images happen to load progressively rather than all at once.",
+        ],
+      },
+      {
+        h: "Why a content management system's default image handling often needs explicit overriding",
+        p: [
+          "Many popular content management systems and page builders insert images without any lazy-loading attribute by default, leaving the responsibility entirely on whoever configures the site to add it explicitly, whether through a theme setting, a plugin, or manual template editing — auditing a CMS-driven site's actual rendered HTML for the presence of `loading=\"lazy\"` on below-the-fold images is worth doing directly rather than assuming a modern platform handles this automatically simply because the underlying browser feature itself is now widely supported.",
+        ],
+      },
+      {
+        h: "Why measuring the actual bandwidth savings validates the effort was worth it",
+        p: [
+          "Lazy loading's benefit is easy to assume but worth actually measuring directly — comparing total bytes transferred for a typical visit before and after adding lazy loading, using real field data rather than assuming the theoretical savings materialized exactly as expected, confirms the implementation is actually working as intended rather than silently loading everything eagerly anyway due to a misconfiguration nobody happened to notice.",
+        ],
+      },
+      {
+        h: "Why a slow connection makes lazy loading's benefit disproportionately larger",
+        p: [
+          "The absolute time saved by deferring off-screen images scales with how slow the connection actually is, which means lazy loading's benefit is disproportionately larger for exactly the visitors on constrained mobile networks who need the improvement most — a fast broadband connection barely notices the difference lazy loading makes, while a slow mobile connection can see a first-paint improvement measured in seconds rather than milliseconds, which is worth keeping in mind when a lazy-loading change looks unremarkable when tested only on a fast development connection.",
+        ],
+      },
+      {
+        h: "Why lazy loading is not a substitute for actually reducing total image weight",
+        p: [
+          "Deferring an image's load until it is needed does not make that image any smaller once it does load, and a page relying on lazy loading alone while still shipping oversized, uncompressed images below the fold has only delayed the cost rather than reduced it — lazy loading and image compression address genuinely separate problems, and treating either alone as a complete performance strategy leaves real, easily captured savings from the other one untouched.",
+        ],
+      },
+      {
+        h: "Why the technique's name slightly undersells what it actually protects",
+        p: [
+          "\"Lazy loading\" sounds like a minor optimization for impatient developers, but its real effect is protecting the initial page load's limited bandwidth and processing budget for exactly the content a user is about to see, deferring everything else until it is actually needed — a more accurate, if less catchy, name might be something closer to prioritized loading, since that is the actual mechanism doing the work underneath the more familiar name.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'http-caching-guide',
+    sections: [
+      {
+        h: 'Why `Cache-Control` largely replaced the older `Expires` header',
+        p: [
+          "`Expires` specifies an absolute date and time after which a cached response is considered stale, which has a subtle but real weakness: it depends on the client's own clock being correctly set relative to the server's, and a client with a meaningfully wrong clock can treat a fresh response as already expired or an expired one as still fresh. `Cache-Control`'s `max-age` directive instead specifies a relative duration in seconds from the moment the response was received, which sidesteps the clock-synchronization problem entirely — this is why `Cache-Control` is the modern, recommended primary mechanism, with `Expires` retained mostly for compatibility with older caches that do not understand the newer header.",
+        ],
+      },
+      {
+        h: 'Strong versus weak ETags, and why the distinction matters for range requests',
+        p: [
+          "An ETag is an opaque identifier representing a specific version of a resource, and the specification distinguishes strong ETags, which guarantee byte-for-byte identical content whenever the same ETag is returned, from weak ETags, prefixed with `W/`, which only guarantee semantic equivalence and may differ in byte-level details that do not affect meaning. This distinction matters concretely for range requests — resuming a partial download, or a video player seeking to a specific point — which require a strong ETag to safely combine separately-fetched byte ranges into one correct, consistent file, since a weak ETag offers no such byte-level guarantee across the ranges being stitched together.",
+        ],
+      },
+      {
+        h: 'Why `no-cache` does not mean what it sounds like it means',
+        p: [
+          "`Cache-Control: no-cache` is one of the more commonly misunderstood directives in this whole subject: it does not prevent caching at all, it permits a cache to store the response but requires revalidating with the origin server before using that cached copy for any subsequent request — the directive that actually prevents storage entirely is `no-store`, and conflating the two produces genuinely different, sometimes surprising caching behavior depending on which one a developer actually intended to specify.",
+        ],
+      },
+      {
+        h: 'Cache busting: why a filename change is more reliable than a cache header change alone',
+        p: [
+          "Relying purely on cache headers to force a stale asset to be refetched after a deploy assumes every intermediate cache along the way — a corporate proxy, an ISP's cache, a browser extension — correctly honors those headers, which is not a universally safe assumption; the more robust pattern is cache busting, embedding a content hash directly into a static asset's filename so that any actual change to the file's contents produces an entirely new URL, which every cache, however it is configured, necessarily treats as a completely different, uncached resource rather than depending on any cache correctly noticing the underlying content changed.",
+        ],
+      },
+      {
+        h: "Why `stale-while-revalidate` changed the trade-off between freshness and speed",
+        p: [
+          "A classic cached response is either fresh, served instantly with no network round trip, or stale, requiring a full revalidation before anything is served at all — `stale-while-revalidate` introduces a middle option: serve the stale cached copy immediately for speed, while simultaneously firing off a background request to fetch a fresh copy for next time, which trades a small, usually invisible chance of a slightly outdated response for consistently fast responses on every single request rather than an occasional slow one every time revalidation happens to be needed.",
+        ],
+      },
+      {
+        h: "Why a CDN's cache and a browser's cache are configured somewhat independently",
+        p: [
+          "The same `Cache-Control` header generally governs both, but a CDN sitting between the origin server and the browser can apply its own separate, additional caching rules on top — a `s-maxage` directive specifically targets shared caches like a CDN, letting an origin specify a different, often longer cache duration for the CDN layer than for an individual user's own browser, which is useful when a team wants the CDN to absorb the bulk of traffic for a long time while still keeping browser-level caching shorter for content that might need a fresher check at the client level.",
+        ],
+      },
+      {
+        h: "Why the Vary header exists, and why misconfiguring it causes very confusing bugs",
+        p: [
+          "A cache stores one entry per URL by default, which breaks the moment a server returns genuinely different content for the same URL depending on some other request header — a different language based on `Accept-Language`, a different format based on `Accept-Encoding` — and the `Vary` header tells a cache which additional request headers must also match before a cached response can be reused, ensuring a French-language response cached for one visitor is never mistakenly served to a different visitor whose browser requested English; omitting a needed `Vary` header produces exactly this class of bug, where different users mysteriously see content clearly meant for someone else.",
+        ],
+      },
+      {
+        h: "Why immutable assets deserve the longest cache lifetime a system supports",
+        p: [
+          "A static asset whose filename already includes a content hash, discussed earlier in this article as the cache-busting technique, can safely be cached for a full year or more with the `immutable` directive, since any future change to its content necessarily produces an entirely new filename and therefore an entirely new URL — there is no scenario where the browser would ever need to revalidate that specific URL's content, which makes an extremely long cache lifetime not just acceptable but the clearly correct choice for this specific, common category of asset.",
+        ],
+      },
+      {
+        h: "Why a misconfigured cache is a common, quiet cause of 'why can't users see my update'",
+        p: [
+          "An HTML file itself is frequently cached far too aggressively by default, which produces a specific, recurring support complaint: a deploy has gone out, the new version works correctly when tested directly, and yet some visitors still see old content — usually because the HTML document, not just its static assets, was cached with a long lifetime somewhere along the chain; HTML is typically the one asset that should be cached briefly or not at all, precisely because it is the entry point that references every other, more safely long-cached asset by URL.",
+        ],
+      },
+      {
+        h: "Why API responses usually need very different caching rules than static assets",
+        p: [
+          "A JSON API response representing frequently changing data generally should not be cached the same way an immutable, hashed static asset is — most API responses either specify a short max-age, use `no-cache` to force revalidation on every request, or set `no-store` entirely for anything sensitive or highly dynamic, and applying the same long, aggressive caching strategy tuned for static assets to API responses is a common, avoidable mistake that serves stale data to users who had every reason to expect current information.",
+        ],
+      },
+      {
+        h: "Why private and public cache directives control which kind of cache is even allowed",
+        p: [
+          "`Cache-Control: private` restricts caching to the end user's own browser, explicitly forbidding a shared cache like a CDN or corporate proxy from storing the response at all, which matters for any response containing content genuinely specific to one authenticated user — a shared cache that ignores this and caches a private response anyway can serve one user's personal data to a completely different user requesting the same URL, which is precisely the class of serious privacy bug this directive exists to prevent.",
+        ],
+      },
+      {
+        h: "Why a browser's back-forward cache is a distinct mechanism from ordinary HTTP caching",
+        p: [
+          "Navigating back to a previously visited page can be served almost instantly from the back-forward cache, a separate browser mechanism that preserves an entire page's in-memory state — including JavaScript execution state — rather than merely its HTTP response bytes, which is why a page restored this way can resume exactly where it was left, scroll position and all, in a way no amount of HTTP `Cache-Control` tuning alone could achieve, since ordinary HTTP caching only ever governs re-fetching bytes, not resuming an entire live page's in-memory state.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'how-the-internet-loads-a-page',
+    sections: [
+      {
+        h: "Why the very first DNS lookup for a domain is the slowest one",
+        p: [
+          "A DNS resolution for a domain never previously looked up has to traverse the full resolution hierarchy — a recursive resolver, the root servers, the top-level domain servers, and finally the domain's own authoritative name server — each hop adding its own round-trip latency, while every subsequent lookup for the same domain within that record's TTL window is served instantly from a cache at whichever layer stored it, whether the browser's own DNS cache, the operating system's, or the recursive resolver's. This is precisely why the very first request to a new third-party domain a page depends on tends to be disproportionately slow compared to every request afterward, and why techniques like DNS prefetching exist specifically to get that one slow first lookup out of the way before it would otherwise block something the user is actually waiting on.",
+        ],
+      },
+      {
+        h: 'TLS handshake: what actually happens during the padlock, and why TLS 1.3 made it faster',
+        p: [
+          "Establishing a secure connection requires exchanging cryptographic parameters before any actual application data can flow, and TLS 1.2 required two full round trips to complete this handshake, while TLS 1.3 reduced that to a single round trip by restructuring which cryptographic parameters the client can safely propose upfront rather than waiting for the server's response first — for a connection already established with a server recently, TLS 1.3 also supports resuming with zero additional round trips at all in many cases, using session parameters cached from the previous connection, which is a meaningful, measurable latency saving that requires no application code changes at all, only using a modern TLS version.",
+        ],
+      },
+      {
+        h: 'HTML parsing produces two trees, not one, before anything is visible',
+        p: [
+          "The browser builds a DOM tree from the parsed HTML and a separate CSSOM tree from all parsed stylesheets, and neither tree alone is sufficient to paint anything — the two are combined into a render tree containing only the nodes that will actually be visually rendered (a `display: none` element, for instance, exists in the DOM but is deliberately excluded from the render tree), and only once that combined render tree exists can the browser compute layout and finally paint pixels to the screen, which is the concrete, multi-step reason a page with either a very large DOM or a very large, unoptimized stylesheet delays first paint even after all the necessary bytes have already arrived over the network.",
+        ],
+      },
+      {
+        h: 'Why HTTP/2 and HTTP/3 changed the shape of this whole story for pages with many resources',
+        p: [
+          "Under HTTP/1.1, a browser could only make a limited number of simultaneous connections per domain, which meant a page requesting dozens of separate resources queued many of those requests behind each other rather than fetching them all in parallel — HTTP/2 introduced multiplexing, letting many requests and responses share a single connection concurrently without queuing behind one another, and HTTP/3, built on QUIC rather than TCP, went further by removing a specific problem called head-of-line blocking at the transport layer itself, where a single lost packet under HTTP/2's TCP-based multiplexing could stall every other in-flight request sharing that same connection, not just the one request the lost packet actually belonged to.",
+        ],
+      },
+      {
+        h: "Why a CDN changes the very first step of this entire story",
+        p: [
+          "For a site served through a CDN, the DNS lookup covered earlier in this article resolves not to the origin server's own address but to whichever CDN edge location is geographically or network-topologically closest to the requesting client, which is precisely what makes a CDN effective: nearly every step described in this article — the TCP handshake, the TLS handshake, and often the actual response itself if the resource is cached at the edge — happens against a nearby edge server rather than the origin potentially located on the other side of the world, cutting the round-trip latency for every one of those steps correspondingly.",
+        ],
+      },
+      {
+        h: "Why the browser's preload scanner starts fetching resources before the parser reaches them",
+        p: [
+          "Modern browsers run a separate, lightweight preload scanner alongside the main HTML parser specifically to look ahead in the document for resources — images, scripts, stylesheets — that will be needed soon, and begin fetching them in the background before the main parser has actually reached that point in the document, which is exactly why a resource referenced late in the HTML can sometimes already be loading by the time the parser gets there, rather than only starting its fetch at that later point the way a naive, single-pass parsing model would suggest.",
+        ],
+      },
+      {
+        h: "Why the browser's connection pool limits are still relevant even under HTTP/2 multiplexing",
+        p: [
+          "Even with HTTP/2 allowing many requests to share one connection, browsers still cap how many separate connections they will open to distinct origins simultaneously, which is precisely why sharding assets across many different subdomains — once a common optimization technique under HTTP/1.1's much stricter per-domain connection limits — has become largely counterproductive under HTTP/2, since it now works against multiplexing's benefit rather than helping to route around an older limitation that no longer applies the same way.",
+        ],
+      },
+      {
+        h: "Why the browser's main thread is the single resource every step in this story eventually competes for",
+        p: [
+          "Parsing HTML, computing styles, executing JavaScript, and painting pixels are, for the most part, all competing for time on the same single main thread, which is precisely why a long-running script anywhere in this pipeline delays every other step queued behind it — a page load is not truly a sequence of independent phases running in parallel, it is a single thread juggling all of them, and understanding that shared constraint is what makes sense of why an unrelated-looking JavaScript bug can visibly delay something as seemingly unconnected as the initial paint.",
+        ],
+      },
+      {
+        h: "Why Service Workers add an entirely new layer to this whole story for repeat visits",
+        p: [
+          "A registered Service Worker sits between the page and the network, intercepting every request and deciding whether to serve it from a local cache, fetch it fresh, or some combination of both, which means a repeat visit to a page with an active Service Worker can skip much of the network story described throughout this article entirely — DNS, TCP, TLS, even the HTTP request itself — serving content directly from a local cache the Service Worker controls, which is the specific mechanism that makes offline-capable web applications and near-instant repeat loads possible.",
+        ],
+      },
+      {
+        h: "Why HTTP/3's use of UDP rather than TCP required rethinking firewall and network assumptions",
+        p: [
+          "TCP has been the assumed transport layer underlying nearly all web traffic for decades, and QUIC, the protocol underlying HTTP/3, instead runs over UDP, which some older or overly restrictive firewalls and network middleboxes were never configured to expect for regular web traffic, occasionally blocking or degrading it — this is part of why HTTP/3 adoption has been gradual rather than an instant, universal switch, since it required not just browser and server support but real-world network infrastructure catching up to a genuinely different transport-layer assumption most of the internet's existing equipment was not originally built around.",
+        ],
+      },
+      {
+        h: "Why understanding this whole sequence end to end is what makes performance debugging tractable",
+        p: [
+          "Every technique discussed elsewhere in this library's web-performance cluster — critical CSS, lazy loading, cache headers — targets one specific step in the sequence this article has walked through, and knowing the full sequence in order is what lets a real investigation be targeted rather than a scattershot attempt at every optimization technique available regardless of whether it actually addresses the specific step that is genuinely slow for a given page.",
+        ],
+      },
+    ],
+  },
 ];
 
 /**
