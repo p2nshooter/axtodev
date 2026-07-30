@@ -8932,6 +8932,388 @@ export const EXPANSIONS: Expansion[] = [
       },
     ],
   },
+  {
+    slug: 'cache-headers-and-the-invisible-deploy',
+    sections: [
+      {
+        h: "Why a service worker's own cache can outlast even a corrected server-side cache header",
+        p: [
+          "A previously registered service worker can keep serving a cached response indefinitely from its own separate cache storage, entirely independent of whatever `Cache-Control` header the server sends on subsequent requests, since the service worker intercepts the request before it ever reaches the network at all — fixing the server-side header alone does nothing for a user whose browser already has an old service worker actively serving stale content, which is exactly why service worker update strategies need their own explicit versioning and cache-invalidation logic, separate from ordinary HTTP caching.",
+        ],
+      },
+      {
+        h: "Why a CDN's edge cache and a browser's own cache can disagree, and why that matters for debugging",
+        p: [
+          "A deploy that correctly purges a CDN's edge cache does not necessarily clear what an individual visitor's own browser has already cached locally, and a deploy that updates browser-facing cache headers going forward does nothing to retroactively expire a response a browser already cached under the old, longer-lived header — this is exactly why 'it works when I check the CDN directly but not in my own browser' is a common, genuinely confusing symptom immediately after a caching-related deploy, and diagnosing it requires checking both layers independently rather than assuming they are always in sync.",
+        ],
+      },
+      {
+        h: 'Cache busting by filename versus by header',
+        p: [
+          "There are two fundamentally different strategies for making sure a client picks up a new file, and mixing them up is where most of these incidents come from. The first strategy is cache busting by filename: every build produces assets with a content hash baked into the name, like main.a3f9c1.js, so a new build is physically a new URL that no cache has ever seen before, stale or not. The second strategy is cache busting by header: the filename stays the same, main.js, and you rely entirely on cache-control and etag headers to tell caches when the content behind that name has changed.",
+          "Hashed filenames are dramatically more robust because they sidestep the whole cache invalidation problem instead of trying to solve it. If the content changes, the name changes, and every cache in the path — browser, CDN edge, corporate proxy, service worker — automatically treats it as a new resource with no coordination required. The only thing you need cache headers for at that point is the index.html or entry document that references the hashed assets, and that one file should be marked no-cache so it is always revalidated, while everything it points to can be cached forever as immutable.",
+          "Teams that skip content hashing and rely purely on cache-control headers for their main bundle are betting that every cache in the world respects those headers correctly and that no intermediate proxy strips or rewrites them, which is a bet you will eventually lose. The fix once you have been burned by this is almost always the same: move to hashed, immutable filenames for anything that can be, and reserve short-lived or no-cache headers only for the one document that has to stay at a stable URL by nature — the HTML entry point that bookmarks and links point to.",
+        ],
+      },
+      {
+        h: 'Why this bug is specifically hard to reproduce',
+        p: [
+          "One of the most frustrating properties of a stale-cache incident is that it resists reproduction from the machine that is investigating it. The engineer who deployed the fix opens the site, hard-refreshes, sees the new version, and concludes the deploy worked — because their own hard refresh bypassed exactly the cache that is still serving stale content to everyone who did not hard refresh. Every act of debugging the problem tends to also accidentally fix it for the person doing the debugging, which hides the scope of who is still affected.",
+          "This is why the right first move when you suspect a caching issue is not to reload your own browser but to check what a cold, uncached client would see — a private/incognito window with no service worker registered, a request from a server with curl showing the actual response headers, or a CDN's own cache-status header showing hit or miss. Any of these give you a view into the cache layer's actual state instead of your personal browser's state, which after a manual refresh is no longer representative of anyone else's experience.",
+        ],
+      },
+      {
+        h: 'Setting max-age deliberately instead of copying a default',
+        p: [
+          "A surprising number of these incidents trace back to a cache-control value that was never chosen on purpose — it was copied from a tutorial, a boilerplate config, or a previous project without anyone re-deriving what value actually fits the resource in question. A max-age of one year makes sense for a hashed, immutable asset that will never be reused under that name once its content changes, but the same one-year value on an unhashed file that gets edited in place is a guaranteed staleness incident waiting for the next deploy.",
+          "The healthier default for anything that is not content-hashed is a short max-age, often measured in minutes, paired with a must-revalidate or stale-while-revalidate directive that lets a cache serve a slightly stale copy while it checks in the background for a fresher one. This gives you most of the performance benefit of caching without the multi-hour blast radius of a cache that was told to trust its copy for a year.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'timezones-why-the-date-is-wrong',
+    sections: [
+      {
+        h: "Why storing a timestamp in UTC and converting only for display is the one rule that actually holds up",
+        p: [
+          "Every genuinely reliable timezone-handling strategy reduces to the same single rule: store every timestamp in UTC, an absolute, unambiguous point in time, and convert to a specific local timezone only at the final moment of displaying it to a specific user — storing a timestamp already converted to a specific local timezone bakes an assumption about which timezone matters directly into the stored data, which breaks the moment that data needs to be interpreted correctly by a user in a different timezone, or the moment a timezone's own offset rules change.",
+        ],
+      },
+      {
+        h: "Why daylight saving transitions create genuinely ambiguous or nonexistent local times",
+        p: [
+          "During a 'spring forward' transition, an entire hour of local clock time is skipped and simply never occurs at all, while during a 'fall back' transition, an hour of local clock time occurs twice, once before and once after the transition — a naive system that stores only a local time without an explicit UTC offset has no reliable way to determine which of the two occurrences a stored 'fall back' timestamp actually refers to, which is exactly the kind of ambiguity that only ever gets fully resolved by storing the UTC-based absolute instant alongside, or instead of, the local representation.",
+        ],
+      },
+      {
+        h: "Why timezone database updates matter even for code that never changes at all",
+        p: [
+          "A country or region can change its own timezone rules — abolishing daylight saving, shifting a boundary, changing an offset entirely — as an actual, real-world political decision, and software has no way to know about this change unless its underlying timezone database (the IANA database nearly every mainstream language relies on) is kept updated; code that correctly implemented timezone handling perfectly on the day it was written can start producing subtly wrong results months later, purely because the timezone rules of some region it deals with changed in the real world without the software's own dependency being updated to match.",
+        ],
+      },
+      {
+        h: "Why testing across a daylight saving boundary deserves its own dedicated test case",
+        p: [
+          "A date-and-time test suite that only exercises ordinary days, never a day that actually crosses a daylight saving transition, provides no real protection against exactly the class of bug this article describes — deliberately including test cases that specifically span a known daylight saving transition date, checking that duration calculations and displayed times remain correct across that boundary, catches a category of bug that is otherwise easy to ship undetected and only discover once real users actually hit the transition in production.",
+        ],
+      },
+      {
+        h: 'Naive versus aware datetime objects',
+        p: [
+          "Most languages that deal with dates distinguish, at least conceptually, between a naive datetime and an aware one. A naive datetime is just a bundle of numbers — year, month, day, hour, minute — with no attached notion of which timezone those numbers are relative to. An aware datetime carries that context explicitly, either as a fixed UTC offset or a named zone like Asia/Jakarta, so that the same wall-clock numbers in two different aware values can be correctly compared and converted.",
+          "The bugs in this article's territory come overwhelmingly from naive datetimes being passed around and combined as if they were aware ones. A naive value coming out of one API and a naive value coming out of another API can both claim to represent 09:00, but if one was captured in UTC and the other in the server's local time, comparing or subtracting them silently produces a wrong answer with no error raised anywhere — naive arithmetic doesn't know enough to complain. The discipline that avoids this is to convert every incoming date to an aware, UTC-based value at the boundary where it enters your system, and never let a naive value survive past that first parsing step.",
+        ],
+      },
+      {
+        h: 'Testing across a DST boundary on purpose',
+        p: [
+          "Because daylight saving transitions are rare — two dates a year in most affected regions — it is entirely possible to ship and run a date-handling feature for months without ever exercising the one code path that breaks. This is why teams that have been burned by DST bugs before start writing tests that deliberately construct dates sitting exactly on a spring-forward or fall-back boundary, rather than waiting for the calendar to produce one naturally and discovering the bug in production when it does.",
+          "A good test suite for anything date-sensitive keeps a small table of known transition instants for the timezones the product actually serves, and runs the scheduling, recurrence, or duration logic against each one specifically. It is a small, mechanical addition to a test suite, but it is disproportionately effective, because DST bugs are almost never caught by ordinary date-arithmetic tests that happen to run on an unremarkable Tuesday in the middle of a season.",
+        ],
+      },
+      {
+        h: 'Displaying relative time without losing the underlying instant',
+        p: [
+          "Interfaces that show '3 hours ago' or 'yesterday' are doing timezone-sensitive work even when they look like they are avoiding the problem entirely, and it is easy to get this subtly wrong. The safe pattern is to compute the relative label from the stored UTC instant and the viewer's current local time at render time, rather than baking a relative string into stored data — a relative label computed once and stored goes stale the moment more time passes, while one computed on each render stays correct indefinitely.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'why-staging-lies-to-you',
+    sections: [
+      {
+        h: "Why data volume and shape differences are the most common cause of this specific lie",
+        p: [
+          "A staging database seeded with a few hundred hand-crafted test records behaves nothing like a production database holding millions of real, messy, organically-accumulated rows, and a query that performs perfectly well against the small staging dataset can be unacceptably slow against production's actual scale and data distribution — this specific gap, data volume and shape rather than application code itself, is one of the most common ways staging quietly fails to predict a real production performance problem.",
+        ],
+      },
+      {
+        h: "Why third-party integrations are frequently mocked in staging in ways that hide real integration bugs",
+        p: [
+          "A payment processor, an email service, or another external dependency is commonly replaced with a simplified mock or sandbox mode in staging specifically to avoid real side effects during testing, but that same simplification means staging never actually exercises the genuine, sometimes messy behavior of the real, production version of that integration — a bug in how the application handles the real service's actual edge cases, rate limits, or occasional malformed response can pass every staging test cleanly and only surface once real production traffic hits the real, unmocked service for the first time.",
+        ],
+      },
+      {
+        h: "Why traffic patterns, not just traffic volume, differ between staging and production in ways that matter",
+        p: [
+          "Beyond simple volume, production traffic has a genuinely different shape than staging traffic usually does — real concurrent users triggering genuine race conditions, a realistic mix of cache hits and misses, actual geographic distribution affecting latency — and a staging environment tested only by a handful of QA engineers clicking through it sequentially will never exercise these concurrency-dependent and distribution-dependent behaviors at all, which is exactly why some of the most consequential production bugs are the ones staging, by its very nature, could never have caught regardless of how carefully it was tested.",
+        ],
+      },
+      {
+        h: "Why closing this gap is a matter of degree, never a matter of eliminating it entirely",
+        p: [
+          "No staging environment, however carefully constructed, will ever be a perfect, complete mirror of production, since production is, definitionally, the one environment that actually has real users, real accumulated data, and real, unpredictable traffic patterns — the realistic goal is narrowing this gap as much as is practically affordable (synthetic load testing, realistic data volumes, canary releases into real production traffic at a small percentage) rather than the unattainable goal of making staging identical to production in every conceivable respect.",
+        ],
+      },
+      {
+        h: 'Feature flags and configuration drift between environments',
+        p: [
+          "Beyond data and traffic, staging and production quietly diverge in a third dimension: configuration. Feature flags get flipped on in staging to test a new path and never flipped back; environment variables accumulate differences as engineers debug something and leave a value changed; a cron job or scheduled task is disabled in staging because it was noisy, and stays disabled indefinitely. None of these differences are announced anywhere, and each one is a small, independent way for staging's behavior to stop representing what production actually runs.",
+          "The parts of a system's configuration that are allowed to differ between environments should be a short, explicit, reviewed list — database endpoints, API keys, log verbosity — rather than an open field where anything can drift. Teams that keep configuration as code, checked into the same repository as the application, make this drift visible in a diff instead of invisible in a dashboard, which turns a silent divergence into something a reviewer can actually catch before it causes a staging-only false negative or false positive.",
+        ],
+      },
+      {
+        h: 'What staging is still good for despite all this',
+        p: [
+          "None of these gaps mean staging is worthless — it means staging answers a narrower question than people assume. Staging reliably answers 'does the deployment mechanism work, does the application start, do the obvious paths function' — and catching a failure at that level before it reaches production is still valuable, because a broken deploy caught in staging costs minutes and a broken deploy caught in production costs an incident.",
+          "What staging cannot answer is 'will this behave correctly under production's data, scale, and traffic shape,' and treating a clean staging run as proof of that broader claim is exactly the lie the article's title refers to. The healthiest way to use staging is as a cheap first filter that catches gross breakage early, paired with staged production rollouts — canaries, percentage-based feature flags, blue-green deploys — that catch the subtler class of bug staging was never going to reveal.",
+        ],
+      },
+      {
+        h: 'Synthetic load as a partial substitute for real traffic',
+        p: [
+          "Since staging cannot organically receive production-scale traffic, some teams replay a sampled, anonymized copy of real production traffic against staging before a risky release, which surfaces concurrency and load-shaped bugs that a handful of manual clicks never would. It is more setup than most teams invest in, but for a change that specifically touches performance or concurrency-sensitive code, it closes a meaningful part of the staging-production gap that ordinary manual testing cannot.",
+        ],
+      },
+      {
+        h: 'One habit that narrows the gap for free',
+        p: [
+          "Refreshing staging's dataset periodically from a scrubbed, anonymized production snapshot, rather than letting it accumulate whatever test data engineers happened to create months ago, is one of the cheapest ways to shrink the gap this article describes, and it requires no new tooling beyond a scheduled job and a privacy-aware scrubbing step.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'browser-race-conditions-slow-connections',
+    sections: [
+      {
+        h: "Why a fast local connection hides an entire category of bug a slow one reliably reveals",
+        p: [
+          "Developing and testing exclusively on a fast local or office network means every asset and API response arrives close enough to instantaneously that the actual, real-world timing gaps between them barely exist at all, which is precisely why race conditions dependent on one specific resource loading meaningfully slower than another simply never manifest during normal development — the identical code, tested on an actual slow connection or with network conditions deliberately throttled, can reveal a serious bug that a fast connection structurally could never have exposed no matter how much testing happened on it.",
+        ],
+      },
+      {
+        h: "Why a script that assumes the DOM is already fully ready is a specific, common instance of this bug class",
+        p: [
+          "A script that queries for a specific DOM element and assumes it already exists, without waiting for a load or DOMContentLoaded event, works reliably on a fast connection where the whole page tends to arrive and parse in a small enough window that the timing usually happens to work out — but on a slow connection, where the script can genuinely execute before the specific element it expects has actually been parsed and inserted into the DOM yet, the exact same code fails intermittently, in a way that looks like a mysterious, hard-to-reproduce bug rather than the straightforward, fixable timing assumption it actually is.",
+        ],
+      },
+      {
+        h: "Why deliberately testing under artificial network throttling should be a standard part of the testing routine",
+        p: [
+          "Every modern browser's developer tools include a network throttling feature specifically to simulate a slow connection without needing an actually slow physical network to test against, and treating a pass under throttled conditions as a standard, required part of testing any feature involving multiple asynchronous resources — rather than an optional, occasionally-remembered extra step — catches exactly this class of bug before it ever reaches the users on real slow connections who would otherwise discover it first.",
+        ],
+      },
+      {
+        h: 'Simulating the real world in local development',
+        p: [
+          "The core problem is that local development happens on the fastest possible network conditions — localhost, or a company network a few milliseconds from the server — while real users connect over cellular networks, congested wifi, and connections with hundreds of milliseconds of latency and meaningful packet loss. A race condition that requires two requests to resolve in a particular relative order is invisible when both requests take five milliseconds each, and become the dominant failure mode when one takes five milliseconds and the other takes eight hundred.",
+          "Chrome and Firefox devtools both include a network throttling feature that can simulate 'Slow 3G' or a custom profile with specified latency and bandwidth, and treating this as a mandatory manual test step — not just for performance work, but for any feature involving more than one asynchronous operation — catches a meaningful share of these bugs before they reach a real user's slow connection. Some teams go further and run their whole automated end-to-end test suite under an artificially throttled network specifically to surface timing-dependent bugs that a fast CI network would hide.",
+        ],
+      },
+      {
+        h: 'Request cancellation as the actual fix',
+        p: [
+          "Once a race condition between two overlapping requests is identified, the durable fix is usually not to add a delay or a lock but to cancel the stale request outright. The AbortController API lets a new request explicitly cancel whatever request preceded it before it starts, so that only the most recent request's response is ever capable of updating the UI — the earlier one either never completes or completes into a controller that has already discarded its result.",
+          "This pattern shows up constantly in search-as-you-type inputs, tab switching, and any UI element that can be triggered again before its previous trigger has resolved. Libraries built around this pattern — React Query, SWR, and similar data-fetching layers — bake automatic request cancellation and result-ordering into their defaults specifically because this exact race condition was common enough across enough codebases to be worth solving once, generically, rather than leaving every component to reimplement it correctly or, more often, not at all.",
+        ],
+      },
+      {
+        h: 'Loading states that expose the race instead of hiding it',
+        p: [
+          "A subtle contributor to this class of bug is a UI that shows no loading state at all between a user's action and the eventual result, which makes it look instantaneous during development on a fast connection and only reveals the gap under real latency. Deliberately adding a visible loading indicator, even a brief one, forces the interface to handle the in-between state explicitly rather than assuming it will never be observed, which tends to surface race conditions during normal development instead of only under production network conditions.",
+        ],
+      },
+      {
+        h: 'Why code review rarely catches this class of bug',
+        p: [
+          "A reviewer reading a diff sees the code's logical structure, not its timing behavior, so a race condition that only manifests under specific relative latencies is nearly invisible in a static read-through. This is part of why manual, throttled-network testing and automated tests that explicitly control timing catch bugs that thorough, careful code review consistently misses — the two techniques are looking for fundamentally different classes of defect.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'why-tests-pass-alone-and-fail-together',
+    sections: [
+      {
+        h: "Why shared global state between tests is the most common root cause of this exact symptom",
+        p: [
+          "A test that mutates a shared module-level variable, a shared database record, or any other piece of state not properly isolated and reset between tests can leave that state altered in a way a later test unknowingly depends on or is confused by — run in isolation, the offending test's own side effect simply does not exist yet to interfere with anything, but run as part of a full suite, its leftover state corrupts a completely different, otherwise-correct test that happens to run afterward.",
+        ],
+      },
+      {
+        h: "Why test execution order matters more than most test suites assume it should",
+        p: [
+          "A test suite that happens to pass reliably only because its tests always run in the same specific order is quietly depending on that specific order, whether or not anyone intended that dependency — deliberately randomizing test execution order on each run, a feature many modern test runners support directly, surfaces exactly this kind of hidden ordering dependency immediately, forcing it to be fixed rather than letting it persist silently until some future change to test ordering finally exposes it.",
+        ],
+      },
+      {
+        h: "Why database and external-resource cleanup between tests needs to be genuinely thorough, not just attempted",
+        p: [
+          "A test that creates a database record and is supposed to clean it up afterward, but whose cleanup step itself fails silently or only partially succeeds, can leave that data in place to confuse a later, otherwise-unrelated test that happens to query the same table — genuinely thorough test isolation, verified explicitly rather than merely attempted and assumed to work, usually means wrapping each test in its own database transaction that is rolled back completely afterward, guaranteeing a clean state for the next test regardless of what the current one actually did.",
+        ],
+      },
+      {
+        h: "Why this specific failure mode is disproportionately expensive to debug precisely because it is intermittent",
+        p: [
+          "A test that fails exactly the same way every single time is straightforward to debug, while a test that only fails intermittently, and specifically only when run alongside certain other tests in a certain order, is one of the more time-consuming categories of bug to track down, since reproducing the failure reliably enough to actually investigate it often requires first identifying the exact specific combination and order of tests that triggers it in the first place.",
+        ],
+      },
+      {
+        h: 'Detecting the problem before it becomes a mystery',
+        p: [
+          "The cheapest time to catch this class of bug is long before someone is staring at a baffling failure in CI, and the fix is almost embarrassingly simple: run the test suite with randomized test order as a matter of routine, not as a special diagnostic step reached for only after something has already gone wrong. Most modern test runners support a seed-based randomization flag, and turning it on by default in CI means any hidden ordering dependency surfaces as a flaky-looking failure early, while the change that introduced it is still fresh and easy to connect to the failure.",
+          "The much worse alternative is a team that runs tests in a fixed, alphabetical or file-discovery order for years, during which a subtle ordering dependency can be introduced, silently rely on it working, and only be discovered when an unrelated refactor happens to change file discovery order or someone adds parallel test execution — at which point dozens of tests can start failing at once with no obvious common cause, because the common cause is an assumption nobody wrote down or even noticed they were making.",
+        ],
+      },
+      {
+        h: 'Database state as the most common hidden dependency',
+        p: [
+          "Among the many forms of shared state that cause this, a database left in whatever condition the previous test left it in is the most common offender in real codebases. One test creates a user record and never deletes it; a later test that counts users or searches by an assumed-unique email collides with that leftover row, and the failure only appears when both tests happen to run in the same process against the same database in that particular order.",
+          "The fix that scales is wrapping each test in a database transaction that gets rolled back at the end, so no test's data can ever leak into the next one's view of the world regardless of execution order. Teams that adopt this pattern early rarely encounter order-dependent test failures at all, because the shared resource that would have carried the dependency simply resets itself every time.",
+        ],
+      },
+      {
+        h: 'CI parallelization as an accidental stress test',
+        p: [
+          "Teams that introduce parallel test execution in CI purely for speed often get an unplanned side benefit: running test files across multiple workers effectively randomizes which tests share a process and in what order, which tends to surface exactly this class of hidden-dependency bug faster than a slower, sequential CI run ever would. It is worth treating any new failure that appears right after enabling parallel test runs as a strong candidate for a pre-existing ordering bug that parallelization simply exposed, rather than assuming the parallelization itself introduced a new defect.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'character-encoding-why-names-break',
+    sections: [
+      {
+        h: "Why UTF-8's variable-length encoding is what makes 'one character' ambiguous in the first place",
+        p: [
+          "UTF-8 represents different characters using anywhere from one to four bytes, which means the number of bytes a string occupies and the number of characters it contains are two genuinely different numbers, not the same thing measured two ways — code that assumes one byte always equals one character, a reasonable assumption for plain ASCII text, silently breaks the moment it encounters any character requiring more than one byte, which includes the overwhelming majority of the world's actual written languages beyond basic English letters and digits.",
+        ],
+      },
+      {
+        h: "Why a single visible emoji can be counted as one, two, or even more by different string functions",
+        p: [
+          "Certain emoji, and some accented characters, are represented in Unicode using a base character combined with one or more additional modifying characters, or as a single character living outside the Basic Multilingual Plane requiring a surrogate pair in UTF-16 — a naive string-length function counting raw code units can report a length of two for something that visually appears, and is understood by a human reader, as a single, indivisible character, which is exactly why 'string length' is a genuinely more complicated question than it first appears once text moves beyond basic ASCII.",
+        ],
+      },
+      {
+        h: "Why truncating a string byte-by-byte can produce a corrupted, unreadable character at the cut point",
+        p: [
+          "Truncating a UTF-8 encoded string at an arbitrary byte position, without checking whether that position happens to fall in the middle of a multi-byte character's own encoding, can slice directly through that character, leaving a broken, invalid byte sequence at the very end of the truncated string that most systems display as a garbled replacement character — safe truncation has to operate on complete character boundaries, not raw byte counts, which is precisely the detail a naive `substring(0, 100)`-style truncation frequently gets wrong on any text containing multi-byte characters.",
+        ],
+      },
+      {
+        h: "Why storing text with the wrong declared encoding produces different mangled output than storing raw bytes correctly",
+        p: [
+          "Text saved to a database column declared with a legacy, single-byte encoding will have any multi-byte character silently corrupted or truncated the moment it is written, since that column's storage format has no way to represent the character correctly at all — this differs from a display-only mangling, where the underlying bytes are still stored correctly but rendered wrong, in a way that matters considerably for recoverability: a display bug can be fixed by displaying the same, still-intact stored bytes correctly, while data actually corrupted at the storage layer is permanently lost and cannot be recovered by any later fix to how it is displayed.",
+        ],
+      },
+      {
+        h: 'Normalization forms and why the same name can fail to match itself',
+        p: [
+          "Unicode has a peculiarity that trips up even encoding-aware developers: several different sequences of code points can render as the exact same visible character. An e with an accent can be stored as a single precomposed code point, or as a plain e followed by a separate combining-accent code point that gets rendered on top of it — visually identical, but byte-for-byte different strings. A name typed once through one input method and once through another can end up in either form, and a naive string comparison between the two will report them as different even though a human reading both sees the same name.",
+          "Unicode defines normalization forms — NFC, which prefers precomposed characters, and NFD, which prefers decomposed sequences — specifically to resolve this, and the practical rule is to normalize every string to the same form, typically NFC, at the point it enters your system, before it is ever compared, hashed, searched, or stored as a lookup key. Skipping this step means two spellings of the same name can silently fail to match in a search, a login lookup, or a duplicate-detection check, and the failure gives no error message at all — it just quietly returns the wrong answer.",
+        ],
+      },
+      {
+        h: 'Where this bites hardest: sorting and search',
+        p: [
+          "Beyond storage and length-counting, encoding assumptions break sorting and substring search in ways that are easy to miss in testing because most test data happens to be plain ASCII. A sort function that compares strings byte by byte will order accented characters in a position that looks arbitrary to a human reader, because it is sorting by the numeric value of encoded bytes rather than by any linguistically meaningful alphabetical order — correct locale-aware sorting requires a collation-aware comparison, not a raw byte comparison.",
+          "Substring search has an analogous trap: searching for a plain 'e' inside a string that contains an accented e stored in decomposed form will not find it, because the decomposed form has no plain 'e' code point standing alone at that position — it has an 'e' immediately followed by a combining accent, and a naive substring check does not know those two code points together represent something a user would consider a match for a bare 'e' search. Search features that need to feel forgiving to real names generally normalize and sometimes even strip accents specifically to route around this.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'null-undefined-and-empty',
+    sections: [
+      {
+        h: "Why JavaScript's specific choice to have both null and undefined is a genuine design outlier",
+        p: [
+          "Most mainstream languages settle on a single representation for 'no value here,' while JavaScript deliberately distinguishes `undefined`, a variable that was declared but never assigned, or a property that was never set at all, from `null`, an explicit, deliberate assignment representing 'intentionally no value' — this distinction is a real, if sometimes debated, design choice rather than an accident, and treating the two as interchangeable, rather than understanding the specific semantic difference each one is meant to signal, is a common source of subtle bugs in exactly this language.",
+        ],
+      },
+      {
+        h: "Why an empty string, an empty array, and a genuinely absent value need three genuinely different checks",
+        p: [
+          "Code that checks only `if (value)` to guard against absence treats an empty string, the number zero, and an empty array as equally falsy alongside actual `null` or `undefined`, which is frequently not the intended behavior at all — a form field left blank is meaningfully different from a form field that was never rendered in the first place, and collapsing both into the same falsy check produces logic that behaves correctly for some inputs and silently wrong for others, purely because the check was broader than the actual distinction the code needed to make.",
+        ],
+      },
+      {
+        h: "Why the nullish coalescing operator was added specifically to fix a common, real mistake with the logical OR operator",
+        p: [
+          "Using `||` to supply a default value — `count || 10` — incorrectly falls back to the default even when `count` is legitimately zero, since zero is falsy, which is exactly the kind of bug that motivated adding the `??` nullish coalescing operator, which falls back to a default only for genuine `null` or `undefined`, correctly preserving a legitimate zero, empty string, or `false` value rather than incorrectly overwriting it — knowing when to reach for `??` instead of `||` specifically prevents this common, easily overlooked class of default-value bug.",
+        ],
+      },
+      {
+        h: "Why database NULL and a language's own null or undefined are related but not identical concepts",
+        p: [
+          "A relational database's own `NULL` represents 'unknown or not applicable' with its own distinct three-valued logic — a comparison against `NULL` returns neither true nor false but a third, genuinely separate 'unknown' result — while a programming language's `null` or `undefined` is typically just an ordinary value that participates in ordinary boolean logic; conflating the two, assuming an ORM's mapping between database `NULL` and a language's own null value preserves every subtlety of SQL's three-valued logic, is a real, if less commonly discussed, source of subtle bugs at exactly the boundary between application code and the database.",
+        ],
+      },
+      {
+        h: 'Optional chaining and default values done right',
+        p: [
+          "The optional chaining operator, written as a question mark before a dot, was added to JavaScript specifically to shorten the extremely common pattern of guarding against null or undefined at every step of a property access chain. Instead of writing a manual check like user && user.address && user.address.city, optional chaining lets you write user?.address?.city and get undefined automatically the moment any link in that chain is missing, without throwing.",
+          "Pairing optional chaining with the nullish coalescing operator gives a clean, correct way to reach into possibly-missing data and supply a default only when the value is truly absent: user?.address?.city ?? 'Unknown' returns the city if the whole chain resolves, and falls back to the default only if something along the way was null or undefined — not if the city happens to be an empty string, which a real city name never is but which the old `||` pattern would have wrongly overridden.",
+        ],
+      },
+      {
+        h: 'Designing your own APIs to avoid the ambiguity',
+        p: [
+          "The deepest fix for this whole category of confusion is architectural: when you are the one designing a function's return value or an object's shape, you get to decide whether absence is represented at all, and if so, by exactly one value rather than several. A function that returns null on 'not found' and undefined on 'not yet loaded' and an empty array on 'loaded, zero results' is handing its caller three different states to check for, each easy to conflate with the others under time pressure.",
+          "The more disciplined approach is to pick one convention for the whole codebase — commonly: undefined means the value was never set, and everything else, including null and empty collections, is treated as a legitimate present value — and document it once so every function respects it. Consistency here matters more than which specific convention is chosen, because the actual cost is paid whenever a caller has to guess which absence value a particular function might return.",
+        ],
+      },
+      {
+        h: 'The cost of getting this wrong in a public API',
+        p: [
+          "When this ambiguity leaks into a function or endpoint that other teams or external developers consume, the cost multiplies, because every caller now has to independently discover and remember which absence value your API actually returns. Documenting the convention explicitly in the function's type signature or API schema, rather than leaving callers to find out by trial and error, is a small effort that prevents a large number of downstream bugs.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'when-an-ai-assistant-invents-a-function',
+    sections: [
+      {
+        h: "Why this specific failure survives code review more often than an obviously broken suggestion would",
+        p: [
+          "A hallucinated function call that references a plausible, well-named, and stylistically consistent API is considerably harder for a human reviewer to catch by reading alone than an obviously malformed or nonsensical piece of code, since the hallucinated reference looks exactly like a real, legitimate call to an unfamiliar part of a library the reviewer simply has not personally used before — this is precisely why this specific failure mode disproportionately survives review compared to more visibly broken mistakes, and why the verification habits this article describes matter more here than ordinary code-quality scrutiny alone would catch.",
+        ],
+      },
+      {
+        h: "Why a failing build is the fastest, cheapest way this specific mistake gets caught in practice",
+        p: [
+          "A hallucinated function or method that genuinely does not exist typically fails immediately and loudly at build or run time in a statically checked language, or the very first time the affected code path actually executes in a dynamically typed one — this is precisely why running the actual code, not merely reading it, is disproportionately effective specifically against this failure mode compared to a subtler logic bug that might execute successfully while still producing a quietly wrong result.",
+        ],
+      },
+      {
+        h: "Why this problem is worse for less popular libraries with sparser training-data representation",
+        p: [
+          "A widely used, thoroughly documented library's actual API surface is represented so extensively across a model's training data that hallucinating a plausible but nonexistent method for it is comparatively rare, while a niche, sparsely documented library gives the model far less real signal to draw from, making a fluent, plausible-sounding but entirely invented method name considerably more likely — this is the same underlying training-data-representation mechanism discussed at greater length in this library's dedicated hallucination article, showing up here specifically in the context of a single invented function call.",
+        ],
+      },
+      {
+        h: "Why an automated check for unresolved imports or undefined references closes this gap systematically",
+        p: [
+          "Rather than relying purely on a human reviewer noticing an unfamiliar function call and deciding to verify it, configuring a linter or type checker to flag any unresolved import or undefined reference automatically catches this specific failure mode mechanically, every time, regardless of how convincing or unfamiliar the hallucinated reference happens to look to a human eye — this is exactly the kind of gap best closed by tooling enforced consistently, rather than left entirely to an individual reviewer's own vigilance in any single instance.",
+        ],
+      },
+      {
+        h: 'Why the problem gets worse with obscure libraries',
+        p: [
+          "Hallucination rates are not uniform across libraries — they track training data volume closely, and that has a specific, predictable consequence: the more niche or newly released a library is, the more likely an AI assistant is to invent a plausible-looking method for it that doesn't exist, because the model has seen comparatively little real code using that library and is filling gaps with pattern-matched guesses from more common, similarly-shaped libraries it has seen far more of.",
+          "This creates a paradox for teams evaluating a new or small library: the moments when you most need accurate guidance — working with something unfamiliar — are exactly the moments when an AI assistant's suggestions are least reliable. The practical response is to raise your skepticism specifically, not uniformly: treat suggestions involving a library with sparse public usage as needing more verification than suggestions involving something enormously well-documented like a core language API, rather than applying one fixed level of trust everywhere.",
+        ],
+      },
+      {
+        h: 'Verification habits that catch it before code review',
+        p: [
+          "The single fastest, cheapest check is one many developers skip out of habit: before accepting a suggested method call, jump to that library's actual type definitions or documentation and confirm the method is real and takes the arguments you were just shown. This takes seconds when your editor supports go-to-definition and immediately turns a maybe into a certainty, rather than deferring that certainty to whenever the code is first run or, worse, to a reviewer who assumes the author already checked.",
+          "Beyond manual lookups, static analysis is unusually well suited to this exact failure mode: a linter or type checker configured to flag unresolved imports and unknown members will catch a hallucinated method call immediately, with no need for the code to execute at all. Teams that treat a clean lint and type-check run as a hard requirement before merge get this category of bug caught mechanically and consistently, instead of relying on any one person's memory of the library's real surface area.",
+        ],
+      },
+      {
+        h: 'Building the habit of running the code immediately',
+        p: [
+          "Because a failing build or a runtime exception is the fastest and cheapest way to catch a hallucinated call, the practical habit that pays off most is running the new code as soon as it is written rather than reading several more suggestions first and running everything together at the end. Running each suggestion as it lands isolates exactly which change introduced the failure, instead of leaving you to guess among a larger batch of unreviewed, unrun code.",
+        ],
+      },
+    ],
+  },
 ];
 
 /**
