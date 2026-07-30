@@ -3719,6 +3719,18 @@ export const EXPANSIONS: Expansion[] = [
           "Before reaching for any of the three fixes, it is worth asking a simple question: does this calculation ever compare two floating-point values for exact equality, or does it require an exact decimal result rather than an approximately correct one? A calculation that only ever displays a rounded result to a user, or only ever feeds into further approximate calculations like a physics simulation, is very often not actually at risk in any way that matters, and applying the more involved fixes described throughout this article to code that was never actually going to be affected is its own, avoidable form of unnecessary complexity.",
         ],
       },
+      {
+        h: "Why a linter rule against direct float equality checks is worth enabling",
+        p: [
+          "Several static analysis tools can flag a direct equality comparison between two floating-point values automatically, catching the mistake at review time rather than waiting for a flaky test to surface it later — enabling this specific check costs nothing beyond a brief initial pass fixing any existing violations, and it prevents an entire class of future bug from ever being written in the first place rather than relying on every individual developer remembering the rule unaided.",
+        ],
+      },
+      {
+        h: "Why this exact example became the canonical teaching case",
+        p: [
+          "0.1 and 0.2 are about as simple and ordinary-looking as two numbers could be, which is precisely why their sum failing to equal the expected 0.3 makes such an effective, memorable illustration — a more obscure or complicated example would not carry the same immediate, visceral surprise, and that surprise is exactly what makes the lesson stick well enough that most developers who have heard it once do not forget it, even if the full underlying mechanism, covered in more depth elsewhere in this cluster of articles, takes longer to fully absorb.",
+        ],
+      },
     ],
   },
   // ── stack traces: two articles, two directions ─────────────────────────────
