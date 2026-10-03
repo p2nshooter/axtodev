@@ -1,6 +1,4 @@
 import Link from 'next/link';
-import { AdSlot } from '@/components/AdSlot';
-import { BannerAd, NativeAd, SponsoredCard } from '@/components/Ads';
 import { SITE } from '@/lib/site';
 import { CATEGORIES, ARTICLES } from '@/content/articles';
 import type { Article } from '@/content/types';
@@ -19,10 +17,8 @@ export function ArticleCard({ article }: { article: Article }) {
 }
 
 /**
- * Full article body with visitor-friendly ad placement: one leaderboard after
- * the intro, one in-article unit mid-way, and one at the end — 2-3 units per
- * article, all centrally controlled and hidden until approved. Never inside a
- * paragraph, never stacked; spacing stays reader-first and AdSense-compliant.
+ * Full article body. No ad unit is placed by hand: once AdSense approves the
+ * site, Auto ads (switched on in the AdSense dashboard) choose the positions.
  */
 export function ArticleBody({ article }: { article: Article }) {
   return (
@@ -34,18 +30,9 @@ export function ArticleBody({ article }: { article: Article }) {
       </p>
       <div className="ornament-rule mt-5" />
 
-      <BannerAd slot="leaderboard" />
-
       <div className="article-body dropcap mt-6">
         {article.sections.map((s, i) => (
           <section key={i}>
-            {i === 0 && <BannerAd slot="rectangle" />}
-            {i === 1 && <AdSlot placement="in_article_1" />}
-            {i === 2 && <NativeAd />}
-            {i === 3 && <AdSlot placement="in_article_2" />}
-            {i === 4 && <BannerAd slot="banner468" />}
-            {i === 5 && <AdSlot placement="in_article" />}
-            {i === 6 && <BannerAd slot="skyscraper" />}
             {s.h && <h2>{s.h}</h2>}
             {s.p.map((para, j) => (
               <p key={j}>{para}</p>
@@ -54,9 +41,6 @@ export function ArticleBody({ article }: { article: Article }) {
         ))}
       </div>
 
-      <AdSlot placement="footer" />
-      <BannerAd slot="halfpage" />
-      <SponsoredCard />
       <div className="ornament-rule mt-8" />
       <p className="mt-4 text-xs leading-relaxed text-ink-800/60">
         This article is educational and general in nature — not personalised advice. Verify current rules and
@@ -127,8 +111,6 @@ export function HomeContent() {
         </div>
       </section>
 
-      <BannerAd slot="leaderboard" className="mx-auto max-w-6xl px-4" />
-
       {/* Topic desks */}
       <section className="mx-auto max-w-6xl px-4 py-12">
         <div className="flex items-end justify-between">
@@ -161,9 +143,6 @@ export function HomeContent() {
             <ArticleCard key={a.slug} article={a} />
           ))}
         </div>
-        <AdSlot placement="footer" />
-        <NativeAd />
-        <SponsoredCard />
       </section>
     </div>
   );
@@ -176,8 +155,6 @@ export function CategoryContent({ cat, articles }: { cat: (typeof CATEGORIES)[nu
       <h1 className="mt-2 font-serif text-3xl font-black">{cat.name}</h1>
       <p className="mt-2 max-w-xl text-ink-800/70">{cat.tagline}</p>
       <div className="ornament-rule mt-5 max-w-sm" />
-      <AdSlot placement="in_article_1" />
-      <BannerAd slot="rectangle" />
       <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {articles.map((a) => (
           <ArticleCard key={a.slug} article={a} />
