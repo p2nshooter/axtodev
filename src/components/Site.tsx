@@ -123,6 +123,9 @@ export function SiteFooter() {
               <li><Link href="/contact" className="transition hover:text-gold-300">Contact</Link></li>
               <li><Link href="/privacy" className="transition hover:text-gold-300">Privacy Policy</Link></li>
               <li><Link href="/terms" className="transition hover:text-gold-300">Terms</Link></li>
+              <li><Link href="/cookies" className="transition hover:text-gold-300">Cookie Policy</Link></li>
+              <li><Link href="/disclaimer" className="transition hover:text-gold-300">Disclaimer</Link></li>
+              <li><Link href="/editorial-policy" className="transition hover:text-gold-300">Editorial Policy</Link></li>
               <li><a href="#top" className="transition hover:text-gold-300">↑ Back to top</a></li>
             </ul>
           </div>
