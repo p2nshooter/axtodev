@@ -1,7 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="AXTO.dev">
-  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs>
-  <rect width="64" height="64" rx="16" fill="#0d1117"/>
-  <polyline points="24,22 14,32 24,42" fill="none" stroke="url(#g)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <polyline points="40,22 50,32 40,42" fill="none" stroke="url(#g)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <line x1="34" y1="18" x2="30" y2="46" stroke="url(#g)" stroke-width="4" stroke-linecap="round"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="3" y="8" width="58" height="48" rx="7" fill="#15181e" stroke="#3b4252" stroke-width="2"/><rect x="3" y="8" width="58" height="11" rx="7" fill="#2b303b"/><circle cx="11" cy="13.5" r="2.2" fill="#ff5f56"/><circle cx="18" cy="13.5" r="2.2" fill="#ffbd2e"/><circle cx="25" cy="13.5" r="2.2" fill="#27c93f"/><path d="M13 28l9 7-9 7" fill="none" stroke="#3ddc84" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M27 44h16" stroke="#3ddc84" stroke-width="4.5" stroke-linecap="round"/></svg>
