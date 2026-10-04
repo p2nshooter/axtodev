@@ -2,8 +2,10 @@ import type { Metadata } from 'next';
 import { SiteBeacon } from "@/components/SiteBeacon";
 import { Playfair_Display, Inter } from 'next/font/google';
 import './globals.css';
+import './copa2026.css';
 import { SITE } from '@/lib/site';
 import { SiteHeader, SiteFooter } from '@/components/Site';
+import { Copa2026 } from '@/components/Copa2026';
 import { Analytics } from '@/components/Analytics';
 
 const serif = Playfair_Display({ subsets: ['latin'], weight: ['400', '700', '900'], variable: '--font-serif', display: 'swap' });
@@ -46,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="font-sans">
         <SiteBeacon />
+        <Copa2026 />
         <SiteHeader />
         <main className="min-h-[60vh]">{children}</main>
         <SiteFooter />
