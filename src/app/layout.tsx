@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { SiteBeacon } from "@/components/SiteBeacon";
-import { Playfair_Display, Inter } from 'next/font/google';
+import { Fraunces, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import './copa2026.css';
 import { SITE } from '@/lib/site';
@@ -8,8 +8,10 @@ import { SiteHeader, SiteFooter } from '@/components/Site';
 import { Copa2026 } from '@/components/Copa2026';
 import { Analytics } from '@/components/Analytics';
 
-const serif = Playfair_Display({ subsets: ['latin'], weight: ['400', '700', '900'], variable: '--font-serif', display: 'swap' });
-const sans = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
+// Brass observatory (docs/ADSENSE-BLUEPRINT.md §4 in ulyah.com): Fraunces for
+// the engraved headings, JetBrains Mono for the developer's reading voice.
+const serif = Fraunces({ subsets: ['latin'], weight: ['500', '600', '700', '800', '900'], style: ['normal', 'italic'], variable: '--font-serif', display: 'swap' });
+const sans = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-sans', display: 'swap' });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
