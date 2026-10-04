@@ -9,8 +9,25 @@ import { CATEGORIES, ARTICLES } from '@/content/articles';
  * respects prefers-reduced-motion.
  */
 
+// The name already carries its extension ("AXTO.dev"): show it once, with the
+// extension in brass, instead of "AXTO.dev.dev".
+const TLD = SITE.domain.split('.').pop()!;
+const BRAND = SITE.name.toLowerCase().endsWith(`.${TLD}`) ? SITE.name.slice(0, -(TLD.length + 1)) : SITE.name;
+
 function latest(n: number) {
   return [...ARTICLES].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, n);
+}
+
+/** The constellation drawn beneath a menu item on hover (Brass observatory). */
+function Constellation() {
+  return (
+    <svg className="obs-constellation" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden>
+      <polyline points="2,7 22,3 41,8 63,2 81,6 98,3" fill="none" stroke="#d9b45c" strokeWidth="0.8" strokeDasharray="120" strokeDashoffset="120" vectorEffect="non-scaling-stroke" />
+      {[[2, 7], [22, 3], [41, 8], [63, 2], [81, 6], [98, 3]].map(([x, y]) => (
+        <circle key={x} cx={x} cy={y} r="1.2" fill="#f3d996" />
+      ))}
+    </svg>
+  );
 }
 
 export function SiteHeader() {
@@ -40,34 +57,37 @@ export function SiteHeader() {
       </div>
 
       {/* Masthead */}
-      <div className="relative overflow-hidden border-b border-[color:var(--accent-soft)] bg-ivory-50">
-        <div className="mk-orb" style={{ width: 280, height: 280, right: -90, top: -130, background: 'var(--accent)' }} />
+      <div className="obs-dome relative overflow-hidden">
         <div className="relative mx-auto flex max-w-6xl flex-wrap items-end justify-between gap-3 px-4 py-6">
-          <Link href="/" className="flex flex-wrap items-baseline gap-3">
-            <span className="font-serif text-4xl font-black tracking-tight sm:text-5xl">
-              {SITE.name}
-              <span className="accent-text">.{SITE.domain.split('.').pop()}</span>
+          <Link href="/" className="flex flex-wrap items-center gap-3">
+            <span className="obs-astrolabe" aria-hidden><i /><i /><i /><i /></span>
+            <span className="font-serif text-4xl font-black tracking-tight text-ivory-50 sm:text-5xl">
+              {BRAND}
+              <span className="accent-text">.{TLD}</span>
             </span>
-            <span className="mk-chip hidden text-gold-600 sm:inline-flex">{SITE.tagline}</span>
+            <span className="mk-chip hidden border-[color:rgba(217,180,92,0.5)] text-gold-300 sm:inline-flex">{SITE.tagline}</span>
           </Link>
-          <p className="hidden max-w-xs text-right text-[11px] leading-snug text-ink-800/60 md:block">{SITE.description}</p>
+          <p className="hidden max-w-xs text-right text-[11px] leading-snug text-ivory-100/60 md:block">{SITE.description}</p>
         </div>
       </div>
 
       {/* Sticky icon nav — scrolls horizontally on mobile, no hidden menus. */}
-      <nav className="sticky top-0 z-40 border-b border-[color:var(--accent-soft)] bg-ivory-50/90 backdrop-blur">
+      <nav className="obs-nav sticky top-0 z-40 border-b border-[color:rgba(217,180,92,0.4)] backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center gap-6 overflow-x-auto px-4 py-3 text-sm font-semibold [scrollbar-width:none]">
-          <Link href="/" className="mk-underline shrink-0 whitespace-nowrap transition hover:text-gold-600">
+          <Link href="/" className="mk-underline shrink-0 whitespace-nowrap transition hover:text-gold-300">
             ⌂ Home
+            <Constellation />
           </Link>
           {CATEGORIES.map((c) => (
-            <Link key={c.slug} href={`/category/${c.slug}`} className="mk-underline shrink-0 whitespace-nowrap transition hover:text-gold-600">
+            <Link key={c.slug} href={`/category/${c.slug}`} className="mk-underline shrink-0 whitespace-nowrap transition hover:text-gold-300">
               <span className="mr-1" aria-hidden>{c.icon}</span>
               {c.name}
+              <Constellation />
             </Link>
           ))}
-          <Link href="/about" className="mk-underline shrink-0 whitespace-nowrap opacity-70 transition hover:text-gold-600">
+          <Link href="/about" className="mk-underline shrink-0 whitespace-nowrap opacity-70 transition hover:text-gold-300">
             About
+            <Constellation />
           </Link>
         </div>
       </nav>
@@ -86,8 +106,8 @@ export function SiteFooter() {
         <div className="grid gap-10 md:grid-cols-4">
           <div>
             <p className="font-serif text-2xl font-black text-ivory-50">
-              {SITE.name}
-              <span className="accent-text">.{SITE.domain.split('.').pop()}</span>
+              {BRAND}
+              <span className="accent-text">.{TLD}</span>
             </p>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-ivory-100/70">{SITE.description}</p>
           </div>

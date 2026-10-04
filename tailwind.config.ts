@@ -1,14 +1,15 @@
 import type { Config } from 'tailwindcss';
 
-// xad.es — modern tech theme: deep slate-navy, cool paper, electric blue.
+// axto.dev — 'Brass observatory': midnight blue, star-chart paper and brass
+// (docs/ADSENSE-BLUEPRINT.md §4 in ulyah.com). Unique to this site.
 const config: Config = {
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        ink: { 950: '#0a0f1c', 900: '#131a2b', 800: '#1d2740', 700: '#2b3a5f' },
-        ivory: { 50: '#f5f7fb', 100: '#e9eef7', 200: '#d5deee' },
-        gold: { 300: '#8fb4ff', 400: '#5a90fe', 500: '#3a7afe', 600: '#2960d8' }
+        ink: { 950: '#060a18', 900: '#0c1330', 800: '#18224a', 700: '#283463' },
+        ivory: { 50: '#f5f2e9', 100: '#e9e3d1', 200: '#d8cfb4' },
+        gold: { 300: '#f0d590', 400: '#d9b45c', 500: '#b8893a', 600: '#8a6222' }
       },
       fontFamily: {
         serif: ['var(--font-serif)', 'Georgia', 'serif'],
