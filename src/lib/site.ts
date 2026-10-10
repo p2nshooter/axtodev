@@ -11,6 +11,6 @@ export const SITE = {
   locale: 'en',
   heroLead: 'Build better',
   heroAccent: 'software',
-  adClient: 'ca-pub-8469557036744946',
+  adClient: 'ca-pub-5693981744147503',
   analyticsEndpoint: 'https://api.ulyah.com/track',
 } as const;
