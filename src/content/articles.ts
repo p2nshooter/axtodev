@@ -5,6 +5,7 @@ import { ARTICLES_BATCH3 } from './articles-batch3';
 import { ARTICLES_BATCH4 } from './articles-batch4';
 import { ARTICLES_BATCH5 } from './articles-batch5';
 import { ARTICLES_BATCH6 } from './articles-batch6';
+import { ARTICLES_BATCH7 } from './articles-batch7';
 import { buildMerged } from './merges';
 import { applyExpansions } from './expansions';
 
@@ -276,6 +277,8 @@ ARTICLES.push(...ARTICLES_BATCH4);
 // either file.
 ARTICLES.push(...ARTICLES_BATCH5);
 ARTICLES.push(...ARTICLES_BATCH6);
+// Batch 7 — five new hand-written guides (13 Oct 2026).
+ARTICLES.push(...ARTICLES_BATCH7);
 
 // Autonomous content bot output (committed by the ulyah.com Orchestra).
 ARTICLES.push(...(AUTO_ARTICLES as unknown as Article[]));
