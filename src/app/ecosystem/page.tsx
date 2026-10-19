@@ -64,7 +64,7 @@ export default function EcosystemPage() {
 
         <h2>Our editorial line</h2>
         <p>
-          AXTO.dev’s guides stay independent: no tutorial recommends axto.io or XAA, and none was written or changed because of them. If they save you a
+          AXTO.dev’s guides stay independent: no tutorial points to axto.io or XAA, and none bends its advice to fit them. If they save you a
           sprint, good. If not, the rest of this site is still about building better software with whatever stack you choose.
         </p>
       </div>
