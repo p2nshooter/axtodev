@@ -11,6 +11,7 @@ export const SITE = {
   locale: 'en',
   heroLead: 'Build better',
   heroAccent: 'software',
-  adClient: 'ca-pub-2493615451319531',
+  // 19 Oct 2026 (owner): "Ubah adsense axto.dev dengan kode ini" — google.com, pub-6381187608934514.
+  adClient: 'ca-pub-6381187608934514',
   analyticsEndpoint: 'https://api.ulyah.com/track',
 } as const;
