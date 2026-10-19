@@ -89,6 +89,9 @@ export function SiteHeader() {
             About
             <Constellation />
           </Link>
+          <Link href="/ecosystem" className="mk-underline eco-promo shrink-0 whitespace-nowrap font-semibold text-gold-300 transition">
+            ✦ Ecosystem
+          </Link>
         </div>
       </nav>
     </header>
@@ -140,6 +143,7 @@ export function SiteFooter() {
             <p className="text-sm font-semibold text-gold-300">Site</p>
             <ul className="mt-3 space-y-2 text-sm text-ivory-100/70">
               <li><Link href="/about" className="transition hover:text-gold-300">About</Link></li>
+              <li><Link href="/ecosystem" className="eco-promo font-semibold text-gold-300 transition hover:text-gold-300">✦ Ecosystem</Link></li>
               <li><Link href="/contact" className="transition hover:text-gold-300">Contact</Link></li>
               <li><Link href="/privacy" className="transition hover:text-gold-300">Privacy Policy</Link></li>
               <li><Link href="/terms" className="transition hover:text-gold-300">Terms</Link></li>
