@@ -7,7 +7,7 @@ export const SITE = {
   url: 'https://axto.dev',
   tagline: 'Build better software',
   description:
-    'Practical, hype-free guides for developers — programming languages, developer tooling, web performance, DevOps and the craft of shipping real software. Written for people who build.',
+    'Practical, hype-free guides for developers: languages, tooling, web performance, DevOps and the craft of shipping real software. Written for people who build.',
   locale: 'en',
   heroLead: 'Build better',
   heroAccent: 'software',

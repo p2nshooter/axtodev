@@ -18,7 +18,9 @@ export const metadata: Metadata = {
   title: { default: `${SITE.name} — ${SITE.tagline}`, template: `%s · ${SITE.name}` },
   description: SITE.description,
   alternates: { canonical: '/' },
-  icons: { icon: '/icon.svg?v=2', shortcut: '/icon.svg?v=2', apple: '/icon.svg?v=2' },
+  // apple-icon.png, opengraph-image.png and twitter-image.png sit in app/ (file conventions).
+  icons: { icon: '/icon.svg?v=2', shortcut: '/icon.svg?v=2' },
+  twitter: { card: 'summary_large_image' },
   robots: { index: true, follow: true },
   openGraph: { siteName: SITE.name, type: 'website', locale: 'en_US' },
   other: { 'google-adsense-account': SITE.adClient }

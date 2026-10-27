@@ -7,7 +7,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'The AXTO ecosystem for builders — axto.io & XAA',
   description:
-    'Our own promotion, clearly labelled: axto.io’s realtime developer platform, self-hosted tools and private AI workspace, and XAA, a studio that ships SaaS and platforms by milestone.',
+    'Our own promotion, labelled: axto.io’s developer platform, self-hosted tools and private AI workspace, and XAA, a studio that ships SaaS by milestone.',
   alternates: { canonical: '/ecosystem' }
 };
 

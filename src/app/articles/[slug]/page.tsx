@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ARTICLES, CATEGORIES, getArticle, getArticlesByCategory } from '@/content/articles';
 import { ArticleBody, RelatedArticles } from '@/components/Article';
+import { searchTitle, snippet } from '@/lib/seo';
 import { SITE } from '@/lib/site';
 
 interface Props { params: Promise<{ slug: string }>; }
@@ -14,8 +15,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!a) return {};
   const url = `${SITE.url}/articles/${slug}`;
   return {
-    title: a.title,
-    description: a.excerpt,
+    title: { absolute: searchTitle(a.title, SITE.name) },
+    description: snippet(a.excerpt),
     alternates: { canonical: `/articles/${slug}` },
     openGraph: {
       title: a.title,
@@ -48,6 +49,7 @@ export default async function ArticlePage({ params }: Props) {
     '@graph': [
       {
         '@type': 'Article',
+        image: `${SITE.url}/opengraph-image.png`,
         '@id': `${url}#article`,
         headline: a.title,
         description: a.excerpt,
