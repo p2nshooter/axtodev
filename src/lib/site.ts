@@ -11,8 +11,8 @@ export const SITE = {
   locale: 'en',
   heroLead: 'Build better',
   heroAccent: 'software',
-  // 19 Oct 2026 (owner): "Ubah adsense axto.dev dengan kode ini" — google.com, pub-6381187608934514.
   // 7 Nov 2026 (owner): one of the sixteen stacked accounts (src/lib/adsense.ts) and this site's primary — the only loader.
-  adClient: 'ca-pub-6381187608934514',
+  // 22 Nov 2026 (pemilik): „hapus seluruh kode adsense tumpuk dan meta tag nya … sisakan 3 adsense saja“: akun utama = ca-pub-4906992051458194 (adsense-stack.json di ulyah.com).
+  adClient: 'ca-pub-4906992051458194',
   analyticsEndpoint: 'https://api.ulyah.com/track',
 } as const;
