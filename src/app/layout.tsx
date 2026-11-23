@@ -6,6 +6,7 @@ import './copa2026.css';
 import { SITE } from '@/lib/site';
 import { AD_ACCOUNTS } from '@/lib/adsense';
 import { SiteHeader, SiteFooter } from '@/components/Site';
+import { EcoBand } from '@/components/EcoBand';
 import { Copa2026 } from '@/components/Copa2026';
 import { Analytics } from '@/components/Analytics';
 
@@ -58,6 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Copa2026 />
         <SiteHeader />
         <main className="min-h-[60vh]">{children}</main>
+        <EcoBand />
         <SiteFooter />
         <Analytics />
       </body>
