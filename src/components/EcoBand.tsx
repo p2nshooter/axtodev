@@ -16,7 +16,7 @@ export function EcoBand() {
   return (
     <>
       <div dangerouslySetInnerHTML={{ __html: BAND }} />
-      <Script src="/eco/engine-eco.js?v=bc7ca9d363" strategy="lazyOnload" />
+      <Script src="/eco/engine-eco.js?v=83b0e04d4d" strategy="lazyOnload" />
     </>
   );
 }
